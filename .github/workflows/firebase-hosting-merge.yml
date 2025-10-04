@@ -10,8 +10,15 @@ jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
     steps:
+      - name: checkout
       - uses: actions/checkout@v4
+      - name: build
+      - run: echo "Cloning Flutter SDK..."
+      - run: git clone https://github.com/flutter/flutter.git --depth 1 -b stable "$FLUTTER_HOME"
+      - run: echo "Installing Flutter project dependencies..."
+      - run: flutter pub get
       - run: flutter build web
+      - name: deploy
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
