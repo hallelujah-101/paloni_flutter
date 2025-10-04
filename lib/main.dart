@@ -44,7 +44,7 @@ class GeminiChatPage extends StatelessWidget {
     appBar: AppBar(title: const Text(MyApp.title)),
     body: LlmChatView(
       provider: FirebaseProvider( // use FirebaseProvider and vertexAI()
-        model: FirebaseAI.vertexAI().generativeModel(model: 'gemini-2.0-flash', tools: [Tool.functionDeclarations([declaration('askAgent', 'Pass query to agent'), declaration('searchDatabase', 'Pass query to database')])]),
+        model: FirebaseAI.vertexAI().generativeModel(model: 'gemini-2.5-flash', tools: [Tool.functionDeclarations([declaration('askAgent', 'Pass query to agent'), declaration('searchDatabase', 'Pass query to database')])]),
       ),
     ),
   );
