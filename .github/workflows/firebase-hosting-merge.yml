@@ -14,7 +14,9 @@ jobs:
       - run: echo "Cloning Flutter SDK..."
       - run: sudo git clone https://github.com/flutter/flutter.git --depth 1 -b stable ${{ runner.home }}/flutter
       - run: echo "Installing Flutter project dependencies..."
+      - run: cat ~/.bash_profile
       - run: echo 'export PATH="/flutter/bin:$PATH"' >> ~/.bash_profile
+      - run: cat ~/.bash_profile
       - run: source ~/.bash_profile
       - run: flutter pub get
       - run: flutter build web
