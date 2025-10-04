@@ -3,7 +3,7 @@
 
 name: Deploy to Firebase Hosting on merge
 env:
-  FLUTTER_HOME="$HOME/flutter" 
+  FLUTTER_HOME: "$HOME/flutter" 
 on:
   push:
     branches:
