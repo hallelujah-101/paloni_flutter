@@ -46,6 +46,7 @@ class GeminiChatPage extends StatelessWidget {
       provider: FirebaseProvider( // use FirebaseProvider and vertexAI()
         model: FirebaseAI.vertexAI().generativeModel(
           model: 'gemini-2.5-flash', 
+          systemInstruction: Content.text('You are a kind and funny commercial conversational agent. You will pass the prompt to your query gemini tool and use the results to form a user friendly reply. The prompts could be multimodal and the endpoints can accomodate and provide responses for all types.'),
           tools: [
             Tool.functionDeclarations([getDeclaration('queryGemini', 'Pass query to gemini model')]
           )]),
