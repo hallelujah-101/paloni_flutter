@@ -22,12 +22,12 @@ void main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  static const String title = 'Flutter Demo';
+  static const String title = "Shopper";
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Shopper',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
       ),
@@ -44,25 +44,31 @@ class GeminiChatPage extends StatelessWidget {
     appBar: AppBar(title: const Text(MyApp.title)),
     body: LlmChatView(
       provider: FirebaseProvider( // use FirebaseProvider and vertexAI()
-        model: FirebaseAI.vertexAI().generativeModel(model: 'gemini-2.5-flash', tools: [Tool.functionDeclarations([declaration('askAgent', 'Pass query to agent'), declaration('searchDatabase', 'Pass query to database')])]),
+        model: FirebaseAI.vertexAI().generativeModel(
+          model: 'gemini-2.5-flash', 
+          tools: [
+            Tool.functionDeclarations([getDeclaration('queryGemini', 'Pass query to gemini model')]
+          )]),
       ),
     ),
   );
 
   
-  static  FunctionDeclaration declaration(name, description){
-    Schema schema = Schema.string();
-
+  static  FunctionDeclaration getDeclaration(String name, String description){
+    var names = ['text', 'attachments'];
+    var schemas = [Schema.string(), Schema.array(items:Schema.integer())];
+    Schema schema = Schema.object(properties: Map<String, Schema>.fromIterables(names, schemas));
+    
     return FunctionDeclaration(
             name,
             description,
-            parameters: Map<String, Schema>.fromIterables(['prompt'], [schema])
+            parameters: Map<String, Schema>.fromIterables(['endpointName', 'prompt'], [Schema.string(),schema])
           );
   }
 
-  static Future<String> askAgent(prompt) async {
-
-    Uri endpoint = Uri.https(cloudRunHost, '/ask_gemini/', {'query' :prompt.toString()});
+  static Future<String> queryEndpoints(String endpointName, Prompt prompt) async 
+  {
+    Uri endpoint = Uri.https(cloudRunHost, "/$endpointName", {'query' :prompt.toJson()});
     var response = await http.get(endpoint);
 
     if(response.statusCode == 200)
@@ -73,24 +79,20 @@ class GeminiChatPage extends StatelessWidget {
     return response.statusCode.toString();
   }
 
-  static Future<String> searchDatabase(prompt) async {
-
-    Uri endpoint = Uri.https(cloudRunHost, '/search_db/', {'query' :prompt.toString()});
-    var response = await http.get(endpoint);
-
-    if(response.statusCode == 200)
-    {
-        return response.body;
-    }
-    
-    return response.statusCode.toString();
+  static Future<String> queryGemini(String endpointName, Prompt prompt) async 
+  {
+    return queryEndpoints('ask_gemini', prompt);
   }
-
 }
 
 class Prompt {
   String? text;
   Iterable<FileAttachment> attachments = Iterable.empty();
+
+  Map<String, dynamic> toJson()
+  {
+    return {'text': text, 'attachments': attachments.map((a)=> a.bytes)};
+  }
 }    
 
 
