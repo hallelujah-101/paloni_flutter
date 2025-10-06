@@ -40,6 +40,8 @@ dependencies:
   google_generative_ai: ^0.4.7 # you might choose to use Gemini,
   firebase_core: ^4.1.1       # or Vertex AI or both
   firebase_vertexai: ^2.2.0
+  flutter_chat_core: ^2.0.0
+  flutter_chat_ui: ^2.0.0
 
 dev_dependencies:
   flutter_test:
