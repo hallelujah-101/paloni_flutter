@@ -92,7 +92,8 @@ class ChatPageState extends State<ChatPage> {
 
   Future<String> askGemini(String prompt) async
   {
-    Uri endpoint = Uri.parse('$cloudRunHost/ask_gemini?query=$prompt');
+    Uri endpoint = Uri.https(cloudRunHost, "/ask_gemini", {"query": prompt});
+    debugPrint(endpoint.path);
 
     var response = await client.get(endpoint, headers: {'Client': userID,'Accept': '*/*', 'Accept-Encoding': 'gzip, deflate, br'});
     return response.body;
