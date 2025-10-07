@@ -1,2 +1,2 @@
-const cloudRunHost = 'paloni-webapp-926930663141.us-central1.run.app';
+const cloudRunHost = 'paloni-webapp-d5a7dvfvta-uc.a.run.app';
 const model = 'gemini-2.5-pro';
