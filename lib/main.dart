@@ -61,16 +61,17 @@ class ChatPageState extends State<ChatPage> {
           try
           {
             var request = askGemini(lastText);
-            request.then((responseBody){
-              var response = jsonDecode(responseBody)['output'];
+            // request.then((responseBody){
+            // var response = jsonDecode(responseBody)['output'];
 
-              _chatController.insertMessage(
-              TextMessage(
-                id: Uuid().v1(),
-                authorId: "Gemini",
-                createdAt: DateTime.now().toUtc(),
-                text: response,
-              ));});
+            //   _chatController.insertMessage(
+            //   TextMessage(
+            //     id: Uuid().v1(),
+            //     authorId: "Gemini",
+            //     createdAt: DateTime.now().toUtc(),
+            //     text: response,
+            //   ));
+            //   ;});
           }
           catch(e)
           {
@@ -92,11 +93,11 @@ class ChatPageState extends State<ChatPage> {
 
   Future<String> askGemini(String prompt) async
   {
-    Uri endpoint = Uri.https(cloudRunHost, "/ask_gemini", {"query": prompt});
-    debugPrint(endpoint.path);
+    Uri endpoint = Uri.http(cloudRunHost, "/ask_gemini", {"query": prompt});
+    debugPrint(endpoint.toString());
 
-    var response = await client.get(endpoint, headers: {'Client': userID,'Accept': '*/*', 'Accept-Encoding': 'gzip, deflate, br'});
-    return response.body;
+    var response = http.get(endpoint, headers: {'Connection': 'keep-alive','CrossDomain':'true', 'Content-Type': 'application/x-www-form-urlencoded','Accept': '*/*', 'Accept-Encoding': 'gzip, deflate, br'});
+    return response.toString();
   }
 }
 
