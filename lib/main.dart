@@ -57,32 +57,21 @@ class ChatPageState extends State<ChatPage> {
           int messagesSize = _chatController.messages.length - 1;
           Message lastMessage = _chatController.messages[messagesSize];
           String lastText = lastMessage.toJson()['text'];
-
-          try
+         
+          askGemini(lastText).then((responseBody)
           {
-            var request = askGemini(lastText);
-            request.then((responseBody){
             var response = jsonDecode(responseBody)['output'];
 
-              _chatController.insertMessage(
-              TextMessage(
-                id: Uuid().v1(),
-                authorId: "Gemini",
-                createdAt: DateTime.now().toUtc(),
-                text: response,
-              ));
-              ;});
-          }
-          catch(e)
-          {
-              _chatController.insertMessage(
-              TextMessage(
-                id: Uuid().v1(),
-                authorId: "Gemini",
-                createdAt: DateTime.now().toUtc(),
-                text: "Gemini not responding",
-              ));
-          }
+            _chatController.insertMessage(
+            TextMessage(
+              id: Uuid().v1(),
+              authorId: "Gemini",
+              createdAt: DateTime.now().toUtc(),
+              text: response,
+            ));
+
+          });
+          
         },
         resolveUser: (UserID id) async {
           return User(id: id, name: 'John Doe');
@@ -98,6 +87,7 @@ class ChatPageState extends State<ChatPage> {
     var response = await client.get(endpoint, headers: {'Connection': 'keep-alive','Accept': '*/*', 'Accept-Encoding': 'gzip, deflate, br'});
     return response.body;
   }
+
 }
 
 
@@ -105,7 +95,7 @@ class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   static const String title = "Shopper";
-
+  
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -116,6 +106,7 @@ class MyApp extends StatelessWidget {
       home: ChatPage(),
     );
   }
+
 }
 
 
