@@ -61,17 +61,17 @@ class ChatPageState extends State<ChatPage> {
           try
           {
             var request = askGemini(lastText);
-            // request.then((responseBody){
-            // var response = jsonDecode(responseBody)['output'];
+            request.then((responseBody){
+            var response = jsonDecode(responseBody)['output'];
 
-            //   _chatController.insertMessage(
-            //   TextMessage(
-            //     id: Uuid().v1(),
-            //     authorId: "Gemini",
-            //     createdAt: DateTime.now().toUtc(),
-            //     text: response,
-            //   ));
-            //   ;});
+              _chatController.insertMessage(
+              TextMessage(
+                id: Uuid().v1(),
+                authorId: "Gemini",
+                createdAt: DateTime.now().toUtc(),
+                text: response,
+              ));
+              ;});
           }
           catch(e)
           {
