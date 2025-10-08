@@ -94,7 +94,7 @@ class ChatPageState extends State<ChatPage> {
   {
     Uri endpoint = Uri.parse('$cloudRunHost/ask_gemini?query=$prompt');
 
-    var response = await client.get(endpoint, headers: {'Client': userID,'Accept': '*/*', 'Accept-Encoding': 'gzip, deflate, br'});
+    var response = await client.get(endpoint, headers: {'Connection': 'keep-alive','Accept': '*/*', 'Accept-Encoding': 'gzip, deflate, br'});
     return response.body;
   }
 }
