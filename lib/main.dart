@@ -69,12 +69,11 @@ class ChatPageState extends State<ChatPage> {
               createdAt: DateTime.now().toUtc(),
               text: response,
             ));
-
-          });
           
+          });
         },
         resolveUser: (UserID id) async {
-          return User(id: id, name: 'John Doe');
+          return User(id: id);
         },
       ),
     );
@@ -87,7 +86,6 @@ class ChatPageState extends State<ChatPage> {
     var response = await client.get(endpoint, headers: {'Connection': 'keep-alive','Accept': '*/*', 'Accept-Encoding': 'gzip, deflate, br'});
     return response.body;
   }
-
 }
 
 
@@ -106,10 +104,7 @@ class MyApp extends StatelessWidget {
       home: ChatPage(),
     );
   }
-
 }
-
-
 
 
 
