@@ -52,31 +52,9 @@ class ChatPageState extends State<ChatPage> {
         ),
         chatController: _chatController,
         currentUserId: userID,
-        onAttachmentTap: () async {
-          final ImagePicker picker = ImagePicker();
-          final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-
-          if(image != null) {
-
-            final imageMessage = ImageMessage(
-            id: Uuid().v1(),
-            authorId: userID,
-            createdAt: DateTime.now().toUtc(),
-            source: image.path,
-          );
-
-          _chatController.insertMessage(imageMessage);
-          }
-        },
+        onAttachmentTap: insertImage,
         onMessageSend: (text) {
-          _chatController.insertMessage(
-            TextMessage(
-              id: Uuid().v1(),
-              authorId: userID,
-              createdAt: DateTime.now().toUtc(),
-              text: text,
-            ),
-          );
+          appendMessage(text);
 
           int messagesSize = _chatController.messages.length - 1;
           Message lastMessage = _chatController.messages[messagesSize];
@@ -85,14 +63,7 @@ class ChatPageState extends State<ChatPage> {
           askGemini(lastText).then((responseBody)
           {
             var response = jsonDecode(responseBody)['output'];
-
-            _chatController.insertMessage(
-            TextMessage(
-              id: Uuid().v1(),
-              authorId: "Gemini",
-              createdAt: DateTime.now().toUtc(),
-              text: response,
-            ));
+            appendMessage(response);
           });
         },
         resolveUser: (UserID id) async {
@@ -100,6 +71,34 @@ class ChatPageState extends State<ChatPage> {
         },
     )
     );
+  }
+
+  void appendMessage(String message){
+
+      _chatController.insertMessage(TextMessage(
+              id: Uuid().v1(),
+              authorId: "Gemini",
+              createdAt: DateTime.now().toUtc(),
+              text: message,
+            ));
+  }
+
+  void insertImage() async 
+  {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+
+    if(image != null) {
+
+      final imageMessage = ImageMessage(
+      id: Uuid().v1(),
+      authorId: userID,
+      createdAt: DateTime.now().toUtc(),
+      source: image.path,
+    );
+
+    _chatController.insertMessage(imageMessage);
+    }
   }
 
   Future<String> askGemini(String prompt) async
