@@ -8,6 +8,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_core/flutter_chat_core.dart';
 import 'package:flutter_chat_ui/flutter_chat_ui.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:flyer_chat_image_message/flyer_chat_image_message.dart';
 
 void main() async {
 
@@ -31,7 +33,6 @@ class ChatPageState extends State<ChatPage> {
   var userID = Uuid().v4();
   var client = http.Client();
 
-
   @override
   void dispose() {
     _chatController.dispose();
@@ -42,8 +43,31 @@ class ChatPageState extends State<ChatPage> {
   Widget build(BuildContext context){
     return Scaffold(
       body: Chat(
+        builders: Builders(
+          imageMessageBuilder: (context, message, index, {
+            required bool isSentByMe,
+            MessageGroupStatus? groupStatus,
+          }) =>
+            FlyerChatImageMessage(message: message, index: index),
+        ),
         chatController: _chatController,
         currentUserId: userID,
+        onAttachmentTap: () async {
+          final ImagePicker picker = ImagePicker();
+          final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+
+          if(image != null) {
+
+            final imageMessage = ImageMessage(
+            id: Uuid().v1(),
+            authorId: userID,
+            createdAt: DateTime.now().toUtc(),
+            source: image.path,
+          );
+
+          _chatController.insertMessage(imageMessage);
+          }
+        },
         onMessageSend: (text) {
           _chatController.insertMessage(
             TextMessage(
@@ -69,13 +93,12 @@ class ChatPageState extends State<ChatPage> {
               createdAt: DateTime.now().toUtc(),
               text: response,
             ));
-          
           });
         },
         resolveUser: (UserID id) async {
           return User(id: id);
         },
-      ),
+    )
     );
   }
 
@@ -83,7 +106,7 @@ class ChatPageState extends State<ChatPage> {
   {
     Uri endpoint = Uri.parse('$cloudRunHost/ask_gemini?query=$prompt');
 
-    var response = await client.get(endpoint, headers: {'Connection': 'keep-alive','Accept': '*/*', 'Accept-Encoding': 'gzip, deflate, br'});
+    var response = await client.get(endpoint, headers: {'Client-Id': userID, 'Connection': 'keep-alive','Accept': '*/*', 'Accept-Encoding': 'gzip, deflate, br'});
     return response.body;
   }
 }
