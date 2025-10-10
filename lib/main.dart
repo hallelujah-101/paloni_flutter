@@ -2,6 +2,8 @@ import 'package:uuid/uuid.dart';
 import 'config.dart';
 import 'firebase_options.dart';
 import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 import 'package:firebase_core/firebase_core.dart';
@@ -54,16 +56,27 @@ class ChatPageState extends State<ChatPage> {
         currentUserId: userID,
         onAttachmentTap: insertImage,
         onMessageSend: (text) {
-          appendMessage(text);
+          appendMessage(userID,text);
 
           int messagesSize = _chatController.messages.length - 1;
-          Message lastMessage = _chatController.messages[messagesSize];
-          String lastText = lastMessage.toJson()['text'];
-         
-          askGemini(lastText).then((responseBody)
+          var prompt = text;
+
+          for(int i = messagesSize - 1; i >= 0; i--)
+          {
+            var message = _chatController.messages[i];
+            
+            if (message.runtimeType == ImageMessage && message.authorId == userID)
+            {   
+                var path = message.toJson()['source'];
+                var imageBytes = File(path).readAsBytes();
+                prompt += " $imageBytes";
+            }
+          }
+      
+          askGemini(prompt).then((responseBody)
           {
             var response = jsonDecode(responseBody)['output'];
-            appendMessage(response);
+            appendMessage("Gemini", response);
           });
         },
         resolveUser: (UserID id) async {
@@ -73,11 +86,11 @@ class ChatPageState extends State<ChatPage> {
     );
   }
 
-  void appendMessage(String message){
+  void appendMessage(String authorId, String message){
 
       _chatController.insertMessage(TextMessage(
               id: Uuid().v1(),
-              authorId: "Gemini",
+              authorId: authorId,
               createdAt: DateTime.now().toUtc(),
               text: message,
             ));
