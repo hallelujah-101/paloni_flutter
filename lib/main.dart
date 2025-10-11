@@ -32,6 +32,8 @@ class ChatPage extends StatefulWidget {
 
 class ChatPageState extends State<ChatPage> {
   final _chatController = InMemoryChatController();
+  List<XFile> _imageCache = List.empty(growable: true);
+
   var userID = Uuid().v4();
   var client = http.Client();
 
@@ -58,19 +60,16 @@ class ChatPageState extends State<ChatPage> {
         onMessageSend: (text) {
           appendMessage(userID,text);
 
-          int messagesSize = _chatController.messages.length - 1;
           var prompt = text;
-
-          for(int i = messagesSize - 1; i >= 0; i--)
+          for(XFile image in _imageCache)
           {
-            var message = _chatController.messages[i];
-            
-            if (message.runtimeType == ImageMessage && message.authorId == userID)
-            {   
-                var path = message.toJson()['source'];
-                var imageBytes = File(path).readAsBytes();
-                prompt += " $imageBytes";
-            }
+            image.readAsBytes().then(
+              (bytes)
+              {
+                var byteString = bytes.join(' ');
+                prompt += " $byteString";
+              }
+            );
           }
       
           askGemini(prompt).then((responseBody)
@@ -103,6 +102,8 @@ class ChatPageState extends State<ChatPage> {
 
     if(image != null) {
 
+      _imageCache.add(image);
+      
       final imageMessage = ImageMessage(
       id: Uuid().v1(),
       authorId: userID,
