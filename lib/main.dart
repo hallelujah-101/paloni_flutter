@@ -8,6 +8,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_core/flutter_chat_core.dart';
 import 'package:flutter_chat_ui/flutter_chat_ui.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:flyer_chat_image_message/flyer_chat_image_message.dart';
 
 void main() async {
 
@@ -52,9 +54,6 @@ class ChatPageState extends State<ChatPage> {
             FlyerChatImageMessage(message: message, index: index),
         ),
         onAttachmentTap: () {
-
-            
-          
 
         },
         onMessageSend: (text) {
