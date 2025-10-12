@@ -44,6 +44,12 @@ class ChatPageState extends State<ChatPage> {
       body: Chat(
         chatController: _chatController,
         currentUserId: userID,
+        onAttachmentTap: () {
+
+            
+          
+
+        },
         onMessageSend: (text) {
           _chatController.insertMessage(
             TextMessage(
@@ -54,13 +60,10 @@ class ChatPageState extends State<ChatPage> {
             ),
           );
 
-          int messagesSize = _chatController.messages.length - 1;
-          Message lastMessage = _chatController.messages[messagesSize];
-          String lastText = lastMessage.toJson()['text'];
-
           try
           {
-            var request = askGemini(lastText);
+            var request = askGemini(text);
+            
             request.then((responseBody){
               var response = jsonDecode(responseBody)['output'];
 
