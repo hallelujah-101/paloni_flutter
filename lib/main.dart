@@ -44,6 +44,13 @@ class ChatPageState extends State<ChatPage> {
       body: Chat(
         chatController: _chatController,
         currentUserId: userID,
+        builders: Builders(
+          imageMessageBuilder: (context, message, index, {
+            required bool isSentByMe,
+            MessageGroupStatus? groupStatus,
+          }) =>
+            FlyerChatImageMessage(message: message, index: index),
+        ),
         onAttachmentTap: () {
 
             
