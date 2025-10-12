@@ -53,8 +53,22 @@ class ChatPageState extends State<ChatPage> {
           }) =>
             FlyerChatImageMessage(message: message, index: index),
         ),
-        onAttachmentTap: () {
+        onAttachmentTap: () async {
 
+            final ImagePicker picker = ImagePicker();
+            final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+
+            if(image != null) {
+
+              final imageMessage = ImageMessage(
+              id: Uuid().v1(),
+              authorId: userID,
+              createdAt: DateTime.now().toUtc(),
+              source: image.path,
+            );
+
+            _chatController.insertMessage(imageMessage);
+          }
         },
         onMessageSend: (text) {
           _chatController.insertMessage(
