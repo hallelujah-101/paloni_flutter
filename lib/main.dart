@@ -32,7 +32,7 @@ class ChatPage extends StatefulWidget {
 
 class ChatPageState extends State<ChatPage> {
   final _chatController = InMemoryChatController();
-  List<XFile> _imageCache = List.empty(growable: true);
+  final _imageCache = List.empty(growable: true);
 
   var userID = Uuid().v4();
   var client = http.Client();
@@ -71,7 +71,9 @@ class ChatPageState extends State<ChatPage> {
               }
             );
           }
-      
+
+          debugPrint("prompt: $prompt");
+
           askGemini(prompt).then((responseBody)
           {
             var response = jsonDecode(responseBody)['output'];
@@ -103,7 +105,7 @@ class ChatPageState extends State<ChatPage> {
     if(image != null) {
 
       _imageCache.add(image);
-      
+
       final imageMessage = ImageMessage(
       id: Uuid().v1(),
       authorId: userID,
