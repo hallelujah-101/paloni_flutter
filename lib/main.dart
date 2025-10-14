@@ -49,13 +49,6 @@ class ChatPageState extends State<ChatPage> {
   Widget build(BuildContext context){
     return Scaffold(
       body: Chat(
-        builders: Builders(
-          imageMessageBuilder: (context, message, index, {
-            required bool isSentByMe,
-            MessageGroupStatus? groupStatus,
-          }) =>
-            FlyerChatImageMessage(message: message, index: index),
-        ),
         chatController: _chatController,
         currentUserId: userID,
         builders: Builders(
