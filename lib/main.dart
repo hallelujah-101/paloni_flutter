@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 import 'config.dart';
 import 'firebase_options.dart';
@@ -12,6 +13,7 @@ import 'package:flutter_chat_core/flutter_chat_core.dart';
 import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flyer_chat_image_message/flyer_chat_image_message.dart';
+import 'package:http/http.dart';
 
 void main() async {
 
@@ -32,7 +34,7 @@ class ChatPage extends StatefulWidget {
 
 class ChatPageState extends State<ChatPage> {
   final _chatController = InMemoryChatController();
-  final _imageCache = List.empty(growable: true);
+  final _imageCache = List<String>.empty(growable: true);
 
   var userID = Uuid().v4();
   var client = http.Client();
@@ -56,72 +58,103 @@ class ChatPageState extends State<ChatPage> {
         ),
         chatController: _chatController,
         currentUserId: userID,
-        onAttachmentTap: insertImage,
-        onMessageSend: (text) {
-          appendMessage(userID,text);
+        builders: Builders(
+          imageMessageBuilder: (context, message, index, {
+            required bool isSentByMe,
+            MessageGroupStatus? groupStatus,
+          }) =>
+            FlyerChatImageMessage(message: message, index: index),
+        ),
+        onAttachmentTap: () async {
 
-          var prompt = text;
-          for(XFile image in _imageCache)
-          {
-            image.readAsBytes().then(
-              (bytes)
-              {
-                var byteString = bytes.join(' ');
-                prompt += " $byteString";
-              }
-            );
+            final ImagePicker picker = ImagePicker();
+            final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+
+            if(image != null) {
+
+              image.readAsBytes().then(
+                
+                (bytes) { 
+                  String base64String = base64.encode(bytes);
+                  _imageCache.add(base64String); }
+                );
+
+              final imageMessage = ImageMessage(
+                                      id: Uuid().v1(),
+                                      authorId: userID,
+                                      createdAt: DateTime.now().toUtc(),
+                                      source: image.path,
+                                    );
+            
+            _chatController.insertMessage(imageMessage);
           }
+        },
+        onMessageSend: (text) {
+          _chatController.insertMessage(
+            TextMessage(
+              id: Uuid().v1(),
+              authorId: userID,
+              createdAt: DateTime.now().toUtc(),
+              text: text,
+            ),
+          );
 
-          debugPrint("prompt: $prompt");
-
-          askGemini(prompt).then((responseBody)
+          try
           {
-            var response = jsonDecode(responseBody)['output'];
-            appendMessage("Gemini", response);
-          });
+
+            var attachments = List<MultipartFile>.empty(growable: true);
+            for (String imageByte in _imageCache)
+            {
+              attachments.add(http.MultipartFile.fromString('attachments', imageByte));
+            }
+
+            var request = askGemini(text, attachments);
+            
+            request.then((responseBody){
+              var response = responseBody;
+              
+              _chatController.insertMessage(
+              TextMessage(
+                id: Uuid().v1(),
+                authorId: "Gemini",
+                createdAt: DateTime.now().toUtc(),
+                text: response,
+              ));
+              });
+          }
+          catch(e)
+          {
+              _chatController.insertMessage(
+              TextMessage(
+                id: Uuid().v1(),
+                authorId: "Gemini",
+                createdAt: DateTime.now().toUtc(),
+                text: "Gemini not responding",
+              ));
+          }
         },
         resolveUser: (UserID id) async {
           return User(id: id);
         },
-    )
+      ),
     );
   }
 
-  void appendMessage(String authorId, String message){
-
-      _chatController.insertMessage(TextMessage(
-              id: Uuid().v1(),
-              authorId: authorId,
-              createdAt: DateTime.now().toUtc(),
-              text: message,
-            ));
-  }
-
-  void insertImage() async 
+  Future<String> askGemini(String text, List<MultipartFile> attachments) async
   {
-    final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-
-    if(image != null) {
-
-      _imageCache.add(image);
-
-      final imageMessage = ImageMessage(
-      id: Uuid().v1(),
-      authorId: userID,
-      createdAt: DateTime.now().toUtc(),
-      source: image.path,
-    );
-
-    _chatController.insertMessage(imageMessage);
+    Uri endpoint = Uri.parse('$cloudRunHost/ask_gemini');
+    MultipartRequest request = MultipartRequest('POST', endpoint);
+    
+    request.fields.addAll({'text':text});
+    for (MultipartFile file in attachments)
+    {
+      request.files.add(file);
     }
-  }
 
-  Future<String> askGemini(String prompt) async
-  {
-    Uri endpoint = Uri.parse('$cloudRunHost/ask_gemini?query=$prompt');
+    request.headers.addAll({'Content-Type': 'multipart/form-data' ,'Connection': 'keep-alive','Accept': '*/*', 'Accept-Encoding': 'gzip, deflate, br'});
 
-    var response = await client.get(endpoint, headers: {'Client-Id': userID, 'Connection': 'keep-alive','Accept': '*/*', 'Accept-Encoding': 'gzip, deflate, br'});
+    var streamedResponse = await client.send(request);
+    var response = await http.Response.fromStream(streamedResponse);
     return response.body;
   }
 }
