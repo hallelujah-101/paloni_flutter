@@ -45,7 +45,6 @@ dependencies:
   flyer_chat_image_message: ^2.2.1
   image_picker: ^1.2.0
 
-
 dev_dependencies:
   flutter_test:
     sdk: flutter
