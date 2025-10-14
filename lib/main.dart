@@ -125,7 +125,7 @@ class ChatPageState extends State<ChatPage> {
           }
         },
         resolveUser: (UserID id) async {
-          return User(id: id, name: 'John Doe');
+          return User(id: id);
         },
       ),
     );
@@ -146,7 +146,6 @@ class ChatPageState extends State<ChatPage> {
 
     var streamedResponse = await client.send(request);
     var response = await http.Response.fromStream(streamedResponse);
-    
     return response.body;
   }
 }
