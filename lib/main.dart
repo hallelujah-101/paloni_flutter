@@ -139,15 +139,12 @@ class ChatPageState extends State<ChatPage> {
     MultipartRequest request = MultipartRequest('POST', endpoint);
     
     request.fields.addAll({'text':text});
-    for (MultipartFile file in attachments)
-    {
-      request.files.add(file);
-    }
-
+    request.files.addAll(attachments);
     request.headers.addAll({'Content-Type': 'multipart/form-data' ,'Connection': 'keep-alive','Accept': '*/*', 'Accept-Encoding': 'gzip, deflate, br'});
 
     var streamedResponse = await client.send(request);
     var response = await http.Response.fromStream(streamedResponse);
+    
     return response.body;
   }
 }
