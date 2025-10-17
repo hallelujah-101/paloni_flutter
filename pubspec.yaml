@@ -44,6 +44,7 @@ dependencies:
   uuid: ^4.4.2
   flyer_chat_image_message: ^2.2.1
   image_picker: ^1.2.0
+  cloud_firestore: ^6.0.3
 
 dev_dependencies:
   flutter_test:

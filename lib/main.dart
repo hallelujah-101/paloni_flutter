@@ -14,6 +14,8 @@ import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flyer_chat_image_message/flyer_chat_image_message.dart';
 import 'package:http/http.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 
 void main() async {
 
@@ -35,6 +37,8 @@ class ChatPage extends StatefulWidget {
 class ChatPageState extends State<ChatPage> {
   final _chatController = InMemoryChatController();
   final _imageCache = List<String>.empty(growable: true);
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
 
   var userID = Uuid().v4();
   var client = http.Client();
@@ -98,8 +102,11 @@ class ChatPageState extends State<ChatPage> {
               attachments.add(http.MultipartFile.fromString('attachments', imageByte));
             }
 
+            updateMessages('text: $text attachments: $attachments');
+
             var request = askGemini(text, attachments);
-            
+
+        
             request.then((responseBody){
               var response = json.decode(responseBody)['output'];
               
@@ -110,7 +117,11 @@ class ChatPageState extends State<ChatPage> {
                   createdAt: DateTime.now().toUtc(),
                   text: response,
                 )
-              );});
+              );
+              
+              updateMessages('$response');
+              
+              });
 
               _imageCache.clear();
         },
@@ -134,6 +145,12 @@ class ChatPageState extends State<ChatPage> {
     var response = await http.Response.fromStream(streamedResponse);
     
     return response.body;
+  }
+
+  Future<void> updateMessages(String newMessage) async {
+              await _firestore.collection(collectionName).doc(documentName).update({
+                      'Message': newMessage,
+                    });
   }
 }
 
