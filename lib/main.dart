@@ -120,7 +120,6 @@ class ChatPageState extends State<ChatPage> {
               );
               
               updateMessages('$response');
-              
               });
 
               _imageCache.clear();
@@ -137,7 +136,7 @@ class ChatPageState extends State<ChatPage> {
     Uri endpoint = Uri.parse('$cloudRunHost/ask_gemini');
     MultipartRequest request = MultipartRequest('POST', endpoint);
     
-    request.fields.addAll({'text':text});
+    request.fields.addAll({'text':text, 'session_id':userID});
     request.files.addAll(attachments);
     request.headers.addAll({'Content-Type': 'multipart/form-data' ,'Connection': 'keep-alive','Accept': '*/*', 'Accept-Encoding': 'gzip, deflate, br'});
 
