@@ -92,9 +92,6 @@ class ChatPageState extends State<ChatPage> {
             ),
           );
 
-          try
-          {
-
             var attachments = List<MultipartFile>.empty(growable: true);
             for (String imageByte in _imageCache)
             {
@@ -104,27 +101,18 @@ class ChatPageState extends State<ChatPage> {
             var request = askGemini(text, attachments);
             
             request.then((responseBody){
-              var response = responseBody;
+              var response = json.decode(responseBody)['output'];
               
               _chatController.insertMessage(
-              TextMessage(
-                id: Uuid().v1(),
-                authorId: "Gemini",
-                createdAt: DateTime.now().toUtc(),
-                text: response,
-              ));
-              });
-          }
-          catch(e)
-          {
-              _chatController.insertMessage(
-              TextMessage(
-                id: Uuid().v1(),
-                authorId: "Gemini",
-                createdAt: DateTime.now().toUtc(),
-                text: "Gemini not responding",
-              ));
-          }
+                TextMessage(
+                  id: Uuid().v1(),
+                  authorId: "Gemini",
+                  createdAt: DateTime.now().toUtc(),
+                  text: response,
+                )
+              );});
+
+              _imageCache.clear();
         },
         resolveUser: (UserID id) async {
           return User(id: id);
