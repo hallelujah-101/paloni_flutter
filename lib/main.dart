@@ -14,7 +14,7 @@ import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flyer_chat_image_message/flyer_chat_image_message.dart';
 import 'package:http/http.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 
 void main() async {
@@ -37,11 +37,11 @@ class ChatPage extends StatefulWidget {
 class ChatPageState extends State<ChatPage> {
   final _chatController = InMemoryChatController();
   final _imageCache = List<String>.empty(growable: true);
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
-
-  var userID = Uuid().v4();
+ 
+  var userId = Uuid().v4();
   var client = http.Client();
+
+  final FirebaseStorage _database = FirebaseStorage.instance;
 
   @override
   void dispose() {
@@ -54,7 +54,7 @@ class ChatPageState extends State<ChatPage> {
     return Scaffold(
       body: Chat(
         chatController: _chatController,
-        currentUserId: userID,
+        currentUserId: userId,
         builders: Builders(
           imageMessageBuilder: (context, message, index, {
             required bool isSentByMe,
@@ -78,19 +78,23 @@ class ChatPageState extends State<ChatPage> {
 
               final imageMessage = ImageMessage(
                                       id: Uuid().v1(),
-                                      authorId: userID,
+                                      authorId: userId,
                                       createdAt: DateTime.now().toUtc(),
                                       source: image.path,
                                     );
-            
+
             _chatController.insertMessage(imageMessage);
           }
         },
         onMessageSend: (text) {
+            
+          var chatHistory = _database.ref().child('/Users/$userId.txt');
+          chatHistory.putString("Chat start!");
+
           _chatController.insertMessage(
             TextMessage(
               id: Uuid().v1(),
-              authorId: userID,
+              authorId: userId,
               createdAt: DateTime.now().toUtc(),
               text: text,
             ),
@@ -106,7 +110,6 @@ class ChatPageState extends State<ChatPage> {
 
             var request = askGemini(text, attachments);
 
-        
             request.then((responseBody){
               var response = json.decode(responseBody)['output'];
               
@@ -136,27 +139,27 @@ class ChatPageState extends State<ChatPage> {
     Uri endpoint = Uri.parse('$cloudRunHost/ask_gemini');
     MultipartRequest request = MultipartRequest('POST', endpoint);
     
-    request.fields.addAll({'text':text, 'session_id':userID});
+    request.fields.addAll({'text':text, 'session_id':userId});
     request.files.addAll(attachments);
     request.headers.addAll({'Content-Type': 'multipart/form-data' ,'Connection': 'keep-alive','Accept': '*/*', 'Accept-Encoding': 'gzip, deflate, br'});
 
     var streamedResponse = await client.send(request);
     var response = await http.Response.fromStream(streamedResponse);
-    
+
     return response.body;
   }
 
-  Future<void> updateMessages(String newMessage) async {
-              await _firestore.collection(collectionName).doc(documentName).update({
-                      'Message': newMessage,
-                    });
+  void updateMessages(String newMessage) {
+    var chatHistory = _database.ref().child('Users/$userId.txt');
+    chatHistory.putString(newMessage);
   }
+  
 }
 
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
-
+  
   static const String title = "Shopper";
   
   @override
