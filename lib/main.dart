@@ -1,10 +1,7 @@
-import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 import 'config.dart';
 import 'firebase_options.dart';
 import 'dart:convert';
-import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 import 'package:firebase_core/firebase_core.dart';
@@ -14,7 +11,7 @@ import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flyer_chat_image_message/flyer_chat_image_message.dart';
 import 'package:http/http.dart';
-import 'package:firebase_storage/firebase_storage.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 
 void main() async {
@@ -36,12 +33,12 @@ class ChatPage extends StatefulWidget {
 
 class ChatPageState extends State<ChatPage> {
   final _chatController = InMemoryChatController();
+  final FirebaseFirestore _database = FirebaseFirestore.instanceFor(app: Firebase.app(), databaseId: databaseId);
   final _imageCache = List<String>.empty(growable: true);
  
   var userId = Uuid().v4();
   var client = http.Client();
 
-  final FirebaseStorage _database = FirebaseStorage.instance;
 
   @override
   void dispose() {
@@ -88,9 +85,6 @@ class ChatPageState extends State<ChatPage> {
         },
         onMessageSend: (text) {
             
-          var chatHistory = _database.ref().child('/Users/$userId.txt');
-          chatHistory.putString("Chat start!");
-
           _chatController.insertMessage(
             TextMessage(
               id: Uuid().v1(),
@@ -150,8 +144,8 @@ class ChatPageState extends State<ChatPage> {
   }
 
   void updateMessages(String newMessage) {
-    var chatHistory = _database.ref().child('Users/$userId.txt');
-    chatHistory.putString(newMessage);
+      var documentReference = _database.collection(collectionName).doc(userId);
+      documentReference.set({"Message": newMessage}, SetOptions(merge: true));
   }
   
 }
