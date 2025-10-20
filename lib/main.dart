@@ -114,7 +114,7 @@ class ChatPageState extends State<ChatPage> {
             request.then((responseBody){
               Map<String, dynamic> response = Map.fromEntries({});
               
-              // TODO: Do something about the output in the backend 
+              // TODO: Change to better object non-object identification
               if(responseBody.contains('{')){
                 response = jsonDecode(responseBody);
               }
@@ -123,7 +123,7 @@ class ChatPageState extends State<ChatPage> {
                 var map = {"text": responseBody, "products": []};
                 response = Map.fromEntries(map.entries);
               }
-              
+
               _chatController.insertMessage(
                 TextMessage(
                   id: Uuid().v1(),
