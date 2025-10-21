@@ -4,16 +4,29 @@ A Flutter chat app with an agent utilising Vertex AI Reasoning engine and Search
 
 ## Getting Started
 
-### Setting up resources
+### Setting up Vertex AI Search and Reasoning engine 
 
+Setting up a google cloud account and Project 
 
-Flutter
+Creating a Vertex AI resource and uploading data 
 
-Why Vertex AI reasoning?
+Creating a Langchain agent
 
+Setting up a Firestore database for chat history 
 
-Why Vertex reasoning engine?
+Deploying agent 
 
+### Running the application
+
+```Bash
+flutter clean
+```
+```Bash
+flutter build web
+```
+```Bash
+flutter run
+```
 
 This project is a starting point for a Flutter application.
 
