@@ -63,7 +63,7 @@ class ChatPageState extends State<ChatPage> {
             required bool isSentByMe,
             MessageGroupStatus? groupStatus,
           }) =>
-            FlyerChatTextMessage(message: message, index: index, sentBackgroundColor: Colors.pinkAccent),
+            FlyerChatTextMessage(message: message, index: index, receivedBackgroundColor: Color.fromARGB(127, 255, 69, 127), sentBackgroundColor: const Color.fromARGB(127, 201, 197, 209),),
         ),
         onAttachmentTap: () async {
 
@@ -111,31 +111,26 @@ class ChatPageState extends State<ChatPage> {
 
             var request = BackendServices.askGemini(userId, text, attachments);
 
-            request.then((responseBody){
-              Map<String, dynamic> response = Map.fromEntries({});
+            request.then((response){
               
-              // TODO: Change to better object non-object identification
-              if(responseBody.contains('{')){
-                response = jsonDecode(responseBody);
-              }
-              else
-              {
-                var map = {"text": responseBody, "products": []};
-                response = Map.fromEntries(map.entries);
-              }
+              var responseBody = Map<String, dynamic>.fromEntries({});
 
-              _chatController.insertMessage(
+              if(response.headers['Agent-Reponse'] == '0'){
+                responseBody = jsonDecode(response.body);
+                
+                _chatController.insertMessage(
                 TextMessage(
                   id: Uuid().v1(),
                   authorId: "Gemini",
                   createdAt: DateTime.now().toUtc(),
-                  text: response['text'],
+                  text: responseBody['text'],
                 )
               );
 
-              var products = response['products'];
+                var products = responseBody['products'];
 
-              if(products.isNotEmpty){
+                if(products.isNotEmpty){
+
                 for (var product in products){
 
                     var metadata = {"productName": product['name'], "Url": product['imageUrl']};
@@ -151,7 +146,21 @@ class ChatPageState extends State<ChatPage> {
 
                 }
               }
-                
+              }
+              else
+              {
+                responseBody = {"text": response.body, "products": []};
+
+                _chatController.insertMessage(
+                TextMessage(
+                  id: Uuid().v1(),
+                  authorId: "Gemini",
+                  createdAt: DateTime.now().toUtc(),
+                  text: responseBody['text'],
+                )
+              );
+              }
+
               BackendServices.updateMessages(userId,'$response');
               });
 

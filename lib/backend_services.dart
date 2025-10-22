@@ -17,7 +17,7 @@ class BackendServices implements DisposableBuildContext{
       documentReference.set({"Message": newMessage}, SetOptions(merge: true));
   }
 
-  static Future<String> askGemini(String userId, String text, List<MultipartFile> attachments) async
+  static Future<Response> askGemini(String userId, String text, List<MultipartFile> attachments) async
   {
       Uri endpoint = Uri.parse('$cloudRunHost/ask_gemini');
       MultipartRequest request = MultipartRequest('POST', endpoint);
@@ -29,7 +29,7 @@ class BackendServices implements DisposableBuildContext{
       var streamedResponse = await _client.send(request);
       var response = await http.Response.fromStream(streamedResponse);
 
-      return response.body;
+      return response;
   }
   
   @override
