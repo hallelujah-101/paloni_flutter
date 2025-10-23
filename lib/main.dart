@@ -13,7 +13,6 @@ import 'package:flyer_chat_image_message/flyer_chat_image_message.dart';
 import 'package:flyer_chat_text_message/flyer_chat_text_message.dart';
 import 'package:http/http.dart';
 
-
 void main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,6 +33,7 @@ class ChatPage extends StatefulWidget{
 class ChatPageState extends State<ChatPage> {
   final _chatController = InMemoryChatController();
   final _imageCache = List<String>.empty(growable: true);
+  final BackendServices _backendServices = BackendServices();
 
   final String userId = Uuid().v4();
 
@@ -108,9 +108,9 @@ class ChatPageState extends State<ChatPage> {
               attachments.add(http.MultipartFile.fromString('attachments', imageByte));
             }
 
-            BackendServices.updateMessages(userId,'text: $text attachments: $attachments');
+            _backendServices.updateMessages(userId,'text: $text attachments: $attachments');
 
-            var request = BackendServices.askGemini(userId, text, attachments);
+            var request = _backendServices.askGemini(userId, text, attachments);
 
             request.then((response){
               
@@ -162,7 +162,7 @@ class ChatPageState extends State<ChatPage> {
               );
               }
 
-              BackendServices.updateMessages(userId,'$response');
+              _backendServices.updateMessages(userId,'$response');
               });
 
               _imageCache.clear();
