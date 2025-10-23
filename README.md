@@ -15,7 +15,7 @@ samples, guidance on mobile development, and a full API reference.
 
 ## Getting Started
 
-### Setting up Vertex AI Search and Reasoning engine 
+### Setting up a Google Cloud account and a Firestore database
 
 This project is built on Google Cloud resources and uses a Firestore database as a memory store. The steps below are required to setup these resources.
 
