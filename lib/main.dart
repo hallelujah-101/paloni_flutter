@@ -53,7 +53,8 @@ class ChatPageState extends State<ChatPage> {
         currentUserId: userId,
         builders: Builders(
           customMessageBuilder: (context, message,index, {required bool isSentByMe,MessageGroupStatus? groupStatus}) 
-          => Column(spacing: 2, crossAxisAlignment: CrossAxisAlignment.center, children: [Image.network(message.metadata?['Url'], fit: BoxFit.contain, errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {return Image.asset('clothes_query_agent_error.png');}), Text(message.metadata?['productName'])]),
+          => 
+          Column(spacing: 2, crossAxisAlignment: CrossAxisAlignment.center, children: [Image.network(message.metadata?['Url'], fit: BoxFit.contain, errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {return Image.asset('clothes_query_agent_error.png');}), Text(message.metadata?['productName'])]),
           imageMessageBuilder: (context, message, index, {
             required bool isSentByMe,
             MessageGroupStatus? groupStatus,
