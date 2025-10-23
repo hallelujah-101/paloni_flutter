@@ -1,5 +1,5 @@
 import 'package:uuid/uuid.dart';
-import 'config.dart';
+import 'backend_services.dart';
 import 'firebase_options.dart';
 import 'dart:convert';
 
@@ -10,8 +10,8 @@ import 'package:flutter_chat_core/flutter_chat_core.dart';
 import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flyer_chat_image_message/flyer_chat_image_message.dart';
+import 'package:flyer_chat_text_message/flyer_chat_text_message.dart';
 import 'package:http/http.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 
 void main() async {
@@ -24,7 +24,7 @@ void main() async {
   runApp(const MyApp());
 }
 
-class ChatPage extends StatefulWidget {
+class ChatPage extends StatefulWidget{
   const ChatPage({super.key});
 
   @override
@@ -33,12 +33,9 @@ class ChatPage extends StatefulWidget {
 
 class ChatPageState extends State<ChatPage> {
   final _chatController = InMemoryChatController();
-  final FirebaseFirestore _database = FirebaseFirestore.instanceFor(app: Firebase.app(), databaseId: databaseId);
   final _imageCache = List<String>.empty(growable: true);
  
   var userId = Uuid().v4();
-  var client = http.Client();
-
 
   @override
   void dispose() {
@@ -49,7 +46,9 @@ class ChatPageState extends State<ChatPage> {
   @override
   Widget build(BuildContext context){
     return Scaffold(
-      body: Chat(
+      appBar: AppBar(scrolledUnderElevation: 0.0, backgroundColor: Colors.white, flexibleSpace: FlexibleSpaceBar(background: Image.asset('clothes_query_agent.png'), centerTitle: true,), toolbarHeight: 150),
+      body:  Chat(
+        backgroundColor: Colors.white,
         chatController: _chatController,
         currentUserId: userId,
         builders: Builders(
@@ -58,6 +57,11 @@ class ChatPageState extends State<ChatPage> {
             MessageGroupStatus? groupStatus,
           }) =>
             FlyerChatImageMessage(message: message, index: index),
+          textMessageBuilder: (context, message, index, {
+            required bool isSentByMe,
+            MessageGroupStatus? groupStatus,
+          }) =>
+            FlyerChatTextMessage(message: message, index: index, sentBackgroundColor: Colors.pinkAccent),
         ),
         onAttachmentTap: () async {
 
@@ -67,7 +71,7 @@ class ChatPageState extends State<ChatPage> {
             if(image != null) {
 
               image.readAsBytes().then(
-                
+  
                 (bytes) { 
                   String base64String = base64.encode(bytes);
                   _imageCache.add(base64String); }
@@ -86,6 +90,7 @@ class ChatPageState extends State<ChatPage> {
         onMessageSend: (text) {
             
           _chatController.insertMessage(
+
             TextMessage(
               id: Uuid().v1(),
               authorId: userId,
@@ -100,13 +105,13 @@ class ChatPageState extends State<ChatPage> {
               attachments.add(http.MultipartFile.fromString('attachments', imageByte));
             }
 
-            updateMessages('text: $text attachments: $attachments');
+            BackendServices.updateMessages(userId,'text: $text attachments: $attachments');
 
-            var request = askGemini(text, attachments);
+            var request = BackendServices.askGemini(userId, text, attachments);
 
             request.then((responseBody){
               var response = json.decode(responseBody)['output'];
-              
+
               _chatController.insertMessage(
                 TextMessage(
                   id: Uuid().v1(),
@@ -116,7 +121,7 @@ class ChatPageState extends State<ChatPage> {
                 )
               );
               
-              updateMessages('$response');
+              BackendServices.updateMessages(userId,'$response');
               });
 
               _imageCache.clear();
@@ -127,27 +132,6 @@ class ChatPageState extends State<ChatPage> {
       ),
     );
   }
-
-  Future<String> askGemini(String text, List<MultipartFile> attachments) async
-  {
-    Uri endpoint = Uri.parse('$cloudRunHost/ask_gemini');
-    MultipartRequest request = MultipartRequest('POST', endpoint);
-    
-    request.fields.addAll({'text':text, 'session_id':userId});
-    request.files.addAll(attachments);
-    request.headers.addAll({'Content-Type': 'multipart/form-data' ,'Connection': 'keep-alive','Accept': '*/*', 'Accept-Encoding': 'gzip, deflate, br'});
-
-    var streamedResponse = await client.send(request);
-    var response = await http.Response.fromStream(streamedResponse);
-
-    return response.body;
-  }
-
-  void updateMessages(String newMessage) {
-      var documentReference = _database.collection(collectionName).doc(userId);
-      documentReference.set({"Message": newMessage}, SetOptions(merge: true));
-  }
-  
 }
 
 
@@ -161,7 +145,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Shopper',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.white),
       ),
       home: ChatPage(),
     );
