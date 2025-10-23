@@ -4,7 +4,7 @@ A Flutter chat app with a Cloud Run app backend.
 
 ## Flutter usage
 
-I have found flutter to be an ideal way to develop front-end components within the timeframe that I built this. A few resources mentioned in the template application:
+I have found flutter ideal for developing front-end components within the timeframe I built the project in. A few resources mentioned in the template application:
 
 - [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
 - [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
@@ -17,7 +17,7 @@ samples, guidance on mobile development, and a full API reference.
 
 ### Setting up Vertex AI Search and Reasoning engine 
 
-This project uses Google cloud resources in the backend for searching through app data and reasoning about it. The steps below are required to setup these resources.
+This project is built on Google Cloud resources and uses a Firestore database as a memory store. The steps below are required to setup these resources.
 
 - Log into your google cloud account and create a project 
   - [Setting up a Google Cloud account and Project](https://developers.google.com/workspace/guides/create-project)
