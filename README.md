@@ -31,7 +31,8 @@ This project is built on Google Cloud resources and uses a Firestore database as
 
 - Host application on Firebase
   - [Firebase hosting how to](https://firebase.google.com/docs/app-hosting/get-started)
-  - Setup Remote Config for the application with {"cloudRunHost": "Link to backend app", "databaseId": "Name of firestore database", "collectionName": "Name of collection in database"}
+  - Setup Remote Config for the application with:
+    {"cloudRunHost": "Link to backend app", "databaseId": "Name of firestore database", "collectionName": "Name of collection in database"}
 
 ### Running the application
 
