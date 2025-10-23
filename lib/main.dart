@@ -34,8 +34,8 @@ class ChatPage extends StatefulWidget{
 class ChatPageState extends State<ChatPage> {
   final _chatController = InMemoryChatController();
   final _imageCache = List<String>.empty(growable: true);
- 
-  var userId = Uuid().v4();
+
+  final String userId = Uuid().v4();
 
   @override
   void dispose() {
@@ -46,12 +46,14 @@ class ChatPageState extends State<ChatPage> {
   @override
   Widget build(BuildContext context){
     return Scaffold(
-      appBar: AppBar(scrolledUnderElevation: 0.0, backgroundColor: Colors.white, flexibleSpace: FlexibleSpaceBar(background: Image.asset('clothes_query_agent.png'), centerTitle: true,), toolbarHeight: 150),
+      appBar: AppBar(scrolledUnderElevation: 0.0, backgroundColor: Theme.of(context).primaryColor, flexibleSpace: FlexibleSpaceBar(background: Image.asset('clothes_query_agent.png'), centerTitle: true,), toolbarHeight: 100),
       body:  Chat(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).primaryColor,
         chatController: _chatController,
         currentUserId: userId,
         builders: Builders(
+          customMessageBuilder: (context, message,index, {required bool isSentByMe,MessageGroupStatus? groupStatus}) 
+          => Column(spacing: 2, crossAxisAlignment: CrossAxisAlignment.center, children: [Image.network(message.metadata?['Url'], fit: BoxFit.contain, errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {return Image.asset('clothes_query_agent_error.png');}), Text(message.metadata?['productName'])]),
           imageMessageBuilder: (context, message, index, {
             required bool isSentByMe,
             MessageGroupStatus? groupStatus,
@@ -88,7 +90,7 @@ class ChatPageState extends State<ChatPage> {
           }
         },
         onMessageSend: (text) {
-            
+              
           _chatController.insertMessage(
 
             TextMessage(
@@ -110,17 +112,46 @@ class ChatPageState extends State<ChatPage> {
             var request = BackendServices.askGemini(userId, text, attachments);
 
             request.then((responseBody){
-              var response = json.decode(responseBody)['output'];
-
+              Map<String, dynamic> response = Map.fromEntries({});
+              
+              // TODO: Do something about the output in the backend 
+              if(responseBody.contains('{')){
+                response = jsonDecode(responseBody);
+              }
+              else
+              {
+                var map = {"text": responseBody, "products": []};
+                response = Map.fromEntries(map.entries);
+              }
+              
               _chatController.insertMessage(
                 TextMessage(
                   id: Uuid().v1(),
                   authorId: "Gemini",
                   createdAt: DateTime.now().toUtc(),
-                  text: response,
+                  text: response['text'],
                 )
               );
-              
+
+              var products = response['products'];
+
+              if(products.isNotEmpty){
+                for (var product in products){
+
+                    var metadata = {"productName": product['name'], "Url": product['imageUrl']};
+
+                    _chatController.insertMessage(
+                    CustomMessage(
+                      id: Uuid().v1(),
+                      authorId: "Gemini",
+                      createdAt: DateTime.now().toUtc(),
+                      metadata: metadata,
+                    )
+                  );
+
+                }
+              }
+                
               BackendServices.updateMessages(userId,'$response');
               });
 
@@ -145,6 +176,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Shopper',
       theme: ThemeData(
+        primaryColor: Colors.white,
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.white),
       ),
       home: ChatPage(),
