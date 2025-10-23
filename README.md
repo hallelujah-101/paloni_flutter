@@ -1,4 +1,4 @@
-# PALONA AI Front-end
+# Gemi Front-end
 
 A Flutter chat app with a Cloud Run app backend.
 
