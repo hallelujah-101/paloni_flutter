@@ -33,28 +33,47 @@ class ChatPage extends StatefulWidget{
 class ChatPageState extends State<ChatPage> {
   final _chatController = InMemoryChatController();
   final _imageCache = List<String>.empty(growable: true);
-  final BackendServices _backendServices = BackendServices();
+  final _backendServices = BackendServices();
 
   final String userId = Uuid().v4();
 
   @override
   void dispose() {
     _chatController.dispose();
+    _backendServices.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context){
     return Scaffold(
-      appBar: AppBar(scrolledUnderElevation: 0.0, backgroundColor: Theme.of(context).primaryColor, flexibleSpace: FlexibleSpaceBar(background: Image.asset('clothes_query_agent.png'), centerTitle: true,), toolbarHeight: 100),
+      appBar: AppBar(
+        scrolledUnderElevation: 0.0, 
+        backgroundColor: Theme.of(context).primaryColor, 
+        flexibleSpace: FlexibleSpaceBar(background: Image.asset('clothes_query_agent.png'), 
+        centerTitle: true,), 
+        toolbarHeight: 100
+        ),
       body:  Chat(
         backgroundColor: Theme.of(context).primaryColor,
         chatController: _chatController,
         currentUserId: userId,
         builders: Builders(
-          customMessageBuilder: (context, message,index, {required bool isSentByMe,MessageGroupStatus? groupStatus}) 
-          => 
-          Column(spacing: 2, crossAxisAlignment: CrossAxisAlignment.center, children: [Image.network(message.metadata?['Url'], fit: BoxFit.contain, errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {return Image.asset('clothes_query_agent_error.png');}), Text(message.metadata?['productName'])]),
+          customMessageBuilder: (context, message,index, 
+          {
+            required bool isSentByMe,
+            MessageGroupStatus? groupStatus
+          }) => 
+          Column(
+            spacing: 2, 
+            crossAxisAlignment: CrossAxisAlignment.center, 
+            children: [
+              Image.network(message.metadata?['imageUrl'], 
+                            fit: BoxFit.contain, 
+                            errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) 
+                            { return Image.asset('clothes_query_agent_error.png');}), Text(message.metadata?['productName'])
+                        ]
+          ),
           imageMessageBuilder: (context, message, index, {
             required bool isSentByMe,
             MessageGroupStatus? groupStatus,
@@ -64,114 +83,147 @@ class ChatPageState extends State<ChatPage> {
             required bool isSentByMe,
             MessageGroupStatus? groupStatus,
           }) =>
-            FlyerChatTextMessage(message: message, index: index, receivedBackgroundColor: Color.fromARGB(127, 255, 69, 127), sentBackgroundColor: const Color.fromARGB(127, 201, 197, 209),),
+            FlyerChatTextMessage(
+              message: message, 
+              index: index, 
+              receivedBackgroundColor: Color.fromARGB(127, 255, 69, 127), 
+              sentBackgroundColor: const Color.fromARGB(127, 201, 197, 209),
+            ),
         ),
         onAttachmentTap: () async {
 
-            final ImagePicker picker = ImagePicker();
-            final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-
-            if(image != null) {
-
-              image.readAsBytes().then(
-  
-                (bytes) { 
-                  String base64String = base64.encode(bytes);
-                  _imageCache.add(base64String); }
-                );
-
-              final imageMessage = ImageMessage(
-                                      id: Uuid().v1(),
-                                      authorId: userId,
-                                      createdAt: DateTime.now().toUtc(),
-                                      source: image.path,
-                                    );
-
-            _chatController.insertMessage(imageMessage);
-          }
+            getImage().then(
+              (image) {
+                  if(image != null) {
+                    addToCache(_imageCache, image);
+                    
+                    final imageMessage = message(image.path, ImageMessage);
+                    _chatController.insertMessage(imageMessage);
+                }
+              }
+            );
         },
         onMessageSend: (text) {
               
           _chatController.insertMessage(
-
-            TextMessage(
-              id: Uuid().v1(),
-              authorId: userId,
-              createdAt: DateTime.now().toUtc(),
-              text: text,
-            ),
+            message(text, TextMessage)
           );
 
-            var attachments = List<MultipartFile>.empty(growable: true);
-            for (String imageByte in _imageCache)
-            {
-              attachments.add(http.MultipartFile.fromString('attachments', imageByte));
-            }
+          var attachments = getAttachments();
+          _backendServices.updateMessages(userId,'text: $text attachments: $attachments');
+            
+          var request = _backendServices.askGemini(userId, text, attachments);
 
-            _backendServices.updateMessages(userId,'text: $text attachments: $attachments');
+          request.then((response){
+            processGeminiResponse(response.body);
+          });
 
-            var request = _backendServices.askGemini(userId, text, attachments);
-
-            request.then((response){
-              
-              var responseBody = Map<String, dynamic>.fromEntries({});
-
-              if(response.headers['Agent-Reponse'] == '1'){
-                responseBody = jsonDecode(response.body);
-                
-                _chatController.insertMessage(
-                TextMessage(
-                  id: Uuid().v1(),
-                  authorId: "Gemini",
-                  createdAt: DateTime.now().toUtc(),
-                  text: responseBody['text'],
-                )
-              );
-
-                var products = responseBody['products'];
-
-                if(products.isNotEmpty){
-
-                for (var product in products){
-
-                    var metadata = {"productName": product['name'], "Url": product['imageUrl']};
-
-                    _chatController.insertMessage(
-                    CustomMessage(
-                      id: Uuid().v1(),
-                      authorId: "Gemini",
-                      createdAt: DateTime.now().toUtc(),
-                      metadata: metadata,
-                    )
-                  );
-
-                }
-              }
-              }
-              else
-              {
-                responseBody = {"text": response.body, "products": []};
-
-                _chatController.insertMessage(
-                TextMessage(
-                  id: Uuid().v1(),
-                  authorId: "Gemini",
-                  createdAt: DateTime.now().toUtc(),
-                  text: responseBody['text'],
-                )
-              );
-              }
-
-              _backendServices.updateMessages(userId,'$response');
-              });
-
-              _imageCache.clear();
+          _imageCache.clear();
         },
         resolveUser: (UserID id) async {
           return User(id: id);
         },
       ),
     );
+  }
+
+
+  Message message(message, type){
+
+    if(type is ImageMessage)
+    {
+      return ImageMessage(
+                id: Uuid().v1(),
+                authorId: userId,
+                createdAt: DateTime.now().toUtc(),
+                source: message,
+              );
+    }
+    else if (type is CustomMessage)
+    {
+      return CustomMessage(
+              id: Uuid().v1(),
+              authorId: "Gemini",
+              createdAt: DateTime.now().toUtc(),
+              metadata: message,
+            );
+    }
+    
+    return  TextMessage(
+            id: Uuid().v1(),
+            authorId: userId,
+            createdAt: DateTime.now().toUtc(),
+            text: message,
+          );
+  }
+
+  void addToCache(List<String> cache, XFile image){
+
+     image.readAsBytes().then(
+      (bytes) { 
+        String base64String = base64.encode(bytes);
+        _imageCache.add(base64String); }
+    );
+  }
+
+  Future<XFile?> getImage() async
+  {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    
+    return image;
+  }
+
+  List<MultipartFile> getAttachments(){
+    
+    var attachments = List<MultipartFile>.empty(growable: true);
+    
+    for (String imageByte in _imageCache)
+    {
+      attachments.add(http.MultipartFile.fromString('attachments', imageByte));
+    }
+
+    return attachments;
+  }
+
+
+  void processGeminiResponse(String response)
+  {
+    var responseBody = Map<String, dynamic>.fromEntries({});
+
+    if(containsData(response)){
+
+      responseBody = jsonDecode(response);
+      _chatController.insertMessage(message(responseBody['text'], TextMessage));
+
+      var products = responseBody['products'];
+
+      if(products.isNotEmpty){
+        for (var product in products){
+            var metadata = {"productName": product['name'], "imageUrl": product['imageUrl']};
+            _chatController.insertMessage(message(metadata, CustomMessage));
+        }
+      }
+
+    }
+    else
+    {
+      responseBody = {"text": response, "products": []};
+      _chatController.insertMessage(
+        message(response, TextMessage));
+    }
+
+    _backendServices.updateMessages(userId,response);
+  }
+
+  bool containsData(String string){
+
+      if(string.contains(RegExp('[{.}]')) )
+      {
+        return true;
+      }
+
+      return false;
   }
 }
 
