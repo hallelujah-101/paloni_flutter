@@ -25,7 +25,6 @@ This project is built on Google Cloud resources and uses a Firestore database as
 - Setting up a Firestore database for chat history
   - [Setup a firestore database through the console](https://cloud.google.com/firestore/native/docs/manage-databases)
   - Open up the database in the console and create a collection
-  - Place the database and collection names in the respective fields in the config.dart file
     
 - Refer to the ReadMe of the backend application for how to set it up
   - [Setup backend](https://github.com/hallelujah-101/palona-webapp)
