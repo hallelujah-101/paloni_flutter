@@ -28,7 +28,10 @@ This project is built on Google Cloud resources and uses a Firestore database as
     
 - Refer to the ReadMe of the backend application for how to set it up
   - [Setup backend](https://github.com/hallelujah-101/palona-webapp)
-  - Place the link to the application in the 'cloudRunHost' section 
+
+- Host application on Firebase
+  - [Firebase hosting how to](https://firebase.google.com/docs/app-hosting/get-started)
+  - Setup Remote Config for the application with {"cloudRunHost": <link to backend app>, "databaseId": <name of firestore database>, "collectionName": <name of collection in database>}
 
 ### Running the application
 
