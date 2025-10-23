@@ -8,36 +8,36 @@ import 'package:firebase_remote_config/firebase_remote_config.dart';
 
 class BackendServices implements DisposableBuildContext{
 
-  static String cloudRunHost = '';
-  static String databaseId = '';
-  static String collectionName = '';
+  String _cloudRunHost = '';
+  String _databaseId = '';
+  String _collectionName = '';
 
+  final remoteConfig = FirebaseRemoteConfig.instance;
   void getConfigs() async {
     
       await remoteConfig.fetchAndActivate();
 
-      cloudRunHost = remoteConfig.getString('cloudRunHost');
-      databaseId = remoteConfig.getString('databaseId');
-      collectionName = remoteConfig.getString('collectionName');
+      _cloudRunHost = remoteConfig.getString('cloudRunHost');
+      _databaseId = remoteConfig.getString('databaseId');
+      _collectionName = remoteConfig.getString('collectionName');
   }
 
-  BackendServices()
+  Future<void> initialiseConfigurations() async 
   {
       getConfigs();
   }
 
   final Client _client = http.Client();
-  final FirebaseFirestore _database = FirebaseFirestore.instanceFor(app: Firebase.app(), databaseId: databaseId);
-  final remoteConfig = FirebaseRemoteConfig.instance;
+  FirebaseFirestore get _database => FirebaseFirestore.instanceFor(app: Firebase.app(), databaseId: _databaseId);
 
    void updateMessages(String userId, String newMessage) {
-      var documentReference = _database.collection(collectionName).doc(userId);
+      var documentReference = _database.collection(_collectionName).doc(userId);
       documentReference.set({"Message": newMessage}, SetOptions(merge: true));
   }
 
    Future<Response> askGemini(String userId, String text, List<MultipartFile> attachments) async
   {
-      Uri endpoint = Uri.parse('$cloudRunHost/ask_gemini');
+      Uri endpoint = Uri.parse('$_cloudRunHost/ask_gemini');
       MultipartRequest request = MultipartRequest('POST', endpoint);
       
       request.fields.addAll({'text':text, 'session_id':userId});

@@ -46,6 +46,9 @@ class ChatPageState extends State<ChatPage> {
 
   @override
   Widget build(BuildContext context){
+    
+    _backendServices.initialiseConfigurations();
+
     return Scaffold(
       appBar: AppBar(
         scrolledUnderElevation: 0.0, 
@@ -102,6 +105,7 @@ class ChatPageState extends State<ChatPage> {
                 }
               }
             );
+
         },
         onMessageSend: (text) {
               
@@ -130,7 +134,7 @@ class ChatPageState extends State<ChatPage> {
 
   Message message(message, type){
 
-    if(type is ImageMessage)
+    if(type == ImageMessage)
     {
       return ImageMessage(
                 id: Uuid().v1(),
@@ -139,7 +143,7 @@ class ChatPageState extends State<ChatPage> {
                 source: message,
               );
     }
-    else if (type is CustomMessage)
+    else if (type == CustomMessage)
     {
       return CustomMessage(
               id: Uuid().v1(),
@@ -204,7 +208,6 @@ class ChatPageState extends State<ChatPage> {
             _chatController.insertMessage(message(metadata, CustomMessage));
         }
       }
-
     }
     else
     {
@@ -218,7 +221,7 @@ class ChatPageState extends State<ChatPage> {
 
   bool containsData(String string){
 
-      if(string.contains(RegExp('[{.}]')) )
+      if(string.contains(RegExp(r'products.*?:.*?\{.*?\}')) )
       {
         return true;
       }
