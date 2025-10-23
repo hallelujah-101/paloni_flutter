@@ -13,18 +13,14 @@ class BackendServices implements DisposableBuildContext{
   String _collectionName = '';
 
   final remoteConfig = FirebaseRemoteConfig.instance;
-  void getConfigs() async {
-    
-      await remoteConfig.fetchAndActivate();
+  
+  Future<void> initialiseConfigurations() async 
+  {
+     await remoteConfig.fetchAndActivate();
 
       _cloudRunHost = remoteConfig.getString('cloudRunHost');
       _databaseId = remoteConfig.getString('databaseId');
       _collectionName = remoteConfig.getString('collectionName');
-  }
-
-  Future<void> initialiseConfigurations() async 
-  {
-      getConfigs();
   }
 
   final Client _client = http.Client();
