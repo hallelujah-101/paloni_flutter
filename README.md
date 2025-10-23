@@ -1,4 +1,4 @@
-# Gemi Front-end
+# Gemi frontend
 
 A Flutter chat app with a Cloud Run app backend.
 
