@@ -116,7 +116,7 @@ class ChatPageState extends State<ChatPage> {
               
               var responseBody = Map<String, dynamic>.fromEntries({});
 
-              if(response.headers['Agent-Reponse'] == '0'){
+              if(response.headers['Agent-Reponse'] == '1'){
                 responseBody = jsonDecode(response.body);
                 
                 _chatController.insertMessage(
