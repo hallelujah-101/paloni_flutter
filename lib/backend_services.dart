@@ -26,12 +26,12 @@ class BackendServices implements DisposableBuildContext{
   final Client _client = http.Client();
   FirebaseFirestore get _database => FirebaseFirestore.instanceFor(app: Firebase.app(), databaseId: _databaseId);
 
-   void updateMessages(String userId, String newMessage) {
+  void updateMessages(String userId, String newMessage) {
       var documentReference = _database.collection(_collectionName).doc(userId);
       documentReference.set({"Message": newMessage}, SetOptions(merge: true));
   }
 
-   Future<Response> askGemini(String userId, String text, List<MultipartFile> attachments) async
+  Future<Response> askGemini(String userId, String text, List<MultipartFile> attachments) async
   {
       Uri endpoint = Uri.parse('$_cloudRunHost/ask_gemini');
       MultipartRequest request = MultipartRequest('POST', endpoint);
