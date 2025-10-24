@@ -74,8 +74,8 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-    #- assets/clothes_query_agent.png
-    #- assets/clothes_query_agent_error.png
+    - assets/clothes_query_agent.png
+    - assets/clothes_query_agent_error.png
     #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
