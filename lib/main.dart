@@ -74,7 +74,8 @@ class ChatPageState extends State<ChatPage> {
               Image.network(message.metadata?['imageUrl'], 
                             fit: BoxFit.contain, 
                             errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) 
-                            { return Image.asset('clothes_query_agent_error.png');}), Text(message.metadata?['productName'])
+                            { return Image.asset('clothes_query_agent_error.png');}), 
+              Text(message.metadata?['productName'])
                         ]
           ),
           imageMessageBuilder: (context, message, index, {
