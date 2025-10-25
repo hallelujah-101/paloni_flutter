@@ -106,7 +106,7 @@ class ChatPageState extends State<ChatPage> {
                 }
               }
             );
-
+            
         },
         onMessageSend: (text) {
               
@@ -209,6 +209,7 @@ class ChatPageState extends State<ChatPage> {
             _chatController.insertMessage(message(metadata, CustomMessage));
         }
       }
+      
     }
     else
     {

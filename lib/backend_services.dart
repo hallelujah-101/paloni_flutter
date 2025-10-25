@@ -8,9 +8,9 @@ import 'package:firebase_remote_config/firebase_remote_config.dart';
 
 class BackendServices implements DisposableBuildContext{
 
-  String _cloudRunHost = '';
-  String _databaseId = '';
-  String _collectionName = '';
+  String _cloudRunHost = Characters.empty.toString();
+  String _databaseId = Characters.empty.toString();
+  String _collectionName = Characters.empty.toString();
 
   final remoteConfig = FirebaseRemoteConfig.instance;
   
