@@ -30,7 +30,7 @@ class BackendServices implements DisposableBuildContext{
 
   MultipartRequest buildPostRequest(String userId, String text, List<MultipartFile> attachments)
   {
-    Uri endpoint = Uri.parse('$_cloudRunHost');
+    Uri endpoint = Uri.parse('$_cloudRunHost/ask_gemini');
     Map<String, String> fields = {'text':text, 'session_id':userId};
 
     MultipartRequest request = MultipartRequest('POST', endpoint);
