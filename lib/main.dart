@@ -106,7 +106,7 @@ class ChatPageState extends State<ChatPage> {
                 }
               }
             );
-            
+
         },
         onMessageSend: (text) {
               
@@ -115,8 +115,6 @@ class ChatPageState extends State<ChatPage> {
           );
 
           var attachments = getAttachments();
-          _backendServices.updateMessages(userId,'text: $text attachments: $attachments');
-            
           var request = _backendServices.askGemini(userId, text, attachments);
 
           request.then((response){
@@ -169,6 +167,7 @@ class ChatPageState extends State<ChatPage> {
         String base64String = base64.encode(bytes);
         _imageCache.add(base64String); }
     );
+
   }
 
   Future<XFile?> getImage() async
@@ -180,7 +179,6 @@ class ChatPageState extends State<ChatPage> {
   }
 
   List<MultipartFile> getAttachments(){
-    
     var attachments = List<MultipartFile>.empty(growable: true);
     
     for (String imageByte in _imageCache)
@@ -194,41 +192,17 @@ class ChatPageState extends State<ChatPage> {
 
   void processGeminiResponse(String response)
   {
-    var responseBody = Map<String, dynamic>.fromEntries({});
+    Map<String, dynamic> responseBody = jsonDecode(response);
+    _chatController.insertMessage(message(responseBody['text'], TextMessage));
 
-    if(containsData(response)){
+    var products = responseBody['products'];
 
-      responseBody = jsonDecode(response);
-      _chatController.insertMessage(message(responseBody['text'], TextMessage));
-
-      var products = responseBody['products'];
-
-      if(products.isNotEmpty){
-        for (var product in products){
-            var metadata = {"productName": product['name'], "imageUrl": product['imageUrl']};
-            _chatController.insertMessage(message(metadata, CustomMessage));
-        }
+    if(products.isNotEmpty){
+      for (var product in products){
+          var metadata = {"productName": product['name'], "imageUrl": product['imageUrl']};
+          _chatController.insertMessage(message(metadata, CustomMessage));
       }
-      
     }
-    else
-    {
-      responseBody = {"text": response, "products": []};
-      _chatController.insertMessage(
-        message(response, TextMessage));
-    }
-
-    _backendServices.updateMessages(userId,response);
-  }
-
-  bool containsData(String string){
-
-      if(string.contains(RegExp(r'products.*?:.*?\{.*?\}')) )
-      {
-        return true;
-      }
-
-      return false;
   }
 }
 

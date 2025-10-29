@@ -1,49 +1,48 @@
 import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 
 
 class BackendServices implements DisposableBuildContext{
 
   String _cloudRunHost = Characters.empty.toString();
-  String _databaseId = Characters.empty.toString();
-  String _collectionName = Characters.empty.toString();
-
-  final remoteConfig = FirebaseRemoteConfig.instance;
   
+  final _remoteConfig = FirebaseRemoteConfig.instance;
+  final Client _client = http.Client();
+
   Future<void> initialiseConfigurations() async 
   {
-     await remoteConfig.fetchAndActivate();
-
-      _cloudRunHost = remoteConfig.getString('cloudRunHost');
-      _databaseId = remoteConfig.getString('databaseId');
-      _collectionName = remoteConfig.getString('collectionName');
-  }
-
-  final Client _client = http.Client();
-  FirebaseFirestore get _database => FirebaseFirestore.instanceFor(app: Firebase.app(), databaseId: _databaseId);
-
-  void updateMessages(String userId, String newMessage) {
-      var documentReference = _database.collection(_collectionName).doc(userId);
-      documentReference.set({"Message": newMessage}, SetOptions(merge: true));
+     await _remoteConfig.fetchAndActivate();
+      _cloudRunHost = _remoteConfig.getString('cloudRunHost');
   }
 
   Future<Response> askGemini(String userId, String text, List<MultipartFile> attachments) async
   {
-      Uri endpoint = Uri.parse('$_cloudRunHost/ask_gemini');
-      MultipartRequest request = MultipartRequest('POST', endpoint);
-      
-      request.fields.addAll({'text':text, 'session_id':userId});
-      request.files.addAll(attachments);
-      request.headers.addAll({'Content-Type': 'multipart/form-data' ,'Connection': 'keep-alive','Accept': '*/*', 'Accept-Encoding': 'gzip, deflate, br', "Access-Control-Allow-Headers": "*"});
+      MultipartRequest request = buildPostRequest(userId, text, attachments);
 
       var streamedResponse = await _client.send(request);
       var response = await http.Response.fromStream(streamedResponse);
 
       return response;
+  }
+
+
+  MultipartRequest buildPostRequest(String userId, String text, List<MultipartFile> attachments)
+  {
+    Uri endpoint = Uri.parse('$_cloudRunHost');
+    Map<String, String> fields = {'text':text, 'session_id':userId};
+
+    MultipartRequest request = MultipartRequest('POST', endpoint);
+    request.fields.addAll(fields);
+    request.files.addAll(attachments);
+    request.headers.addAll({'Content-Type': 'multipart/form-data' ,
+                            'Connection': 'keep-alive','Accept': '*/*', 
+                            'Accept-Encoding': 'gzip, deflate, br', 
+                            "Access-Control-Allow-Headers": "*"
+                            });
+    
+    return request;
   }
   
   @override
