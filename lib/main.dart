@@ -131,7 +131,8 @@ class ChatPageState extends State<ChatPage> {
   }
 
 
-  Message message(message, type){
+  Message message(message, type)
+  {
 
     if(type == ImageMessage)
     {
@@ -189,19 +190,32 @@ class ChatPageState extends State<ChatPage> {
     return attachments;
   }
 
+  bool containsProducts(String response)
+  {
+    return response.contains("products");
+  }
 
   void processGeminiResponse(String response)
   {
-    Map<String, dynamic> responseBody = jsonDecode(response);
-    _chatController.insertMessage(message(responseBody['text'], TextMessage));
+    var responseBody = Map<String, dynamic>.fromEntries({});
+    
+    if(containsProducts(response))
+    {
+       responseBody = jsonDecode(response);
+      _chatController.insertMessage(message(responseBody['text'], TextMessage));
 
-    var products = responseBody['products'];
+      var products = responseBody['products'];
 
-    if(products.isNotEmpty){
-      for (var product in products){
-          var metadata = {"productName": product['name'], "imageUrl": product['imageUrl']};
-          _chatController.insertMessage(message(metadata, CustomMessage));
+      if(products.isNotEmpty){
+        for (var product in products){
+            var metadata = {"productName": product['name'], "imageUrl": product['imageUrl']};
+            _chatController.insertMessage(message(metadata, CustomMessage));
+        }
       }
+    }
+    else
+    {
+      _chatController.insertMessage(message(response, TextMessage));
     }
   }
 }
