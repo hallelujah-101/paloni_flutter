@@ -167,7 +167,7 @@ class ChatPageState extends State<ChatPage> {
         String base64String = base64.encode(bytes);
         _imageCache.add(base64String); }
     );
-
+    
   }
 
   Future<XFile?> getImage() async

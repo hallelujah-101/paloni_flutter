@@ -32,16 +32,19 @@ class BackendServices implements DisposableBuildContext{
   {
     Uri endpoint = Uri.parse('$_cloudRunHost/ask_gemini');
     Map<String, String> fields = {'text':text, 'session_id':userId};
+    var headers = { 'Content-Type': 'multipart/x-www-form-urlencoded' ,
+                    'Connection': 'keep-alive',
+                    'Access-Control-Allow-Origin':'*',
+                    'Access-Control-Allow-Methods': 'GET,PUT,PATCH,POST,DELETE',
+                    'Accept-Encoding': '*', 
+                    'Access-Control-Allow-Headers': 'Access-Control-Allow-Origin, Origin, X-Requested-With, Content-Type, Accept'
+                    };
 
     MultipartRequest request = MultipartRequest('POST', endpoint);
     request.fields.addAll(fields);
     request.files.addAll(attachments);
-    request.headers.addAll({'Content-Type': 'multipart/form-data' ,
-                            'Connection': 'keep-alive','Accept': '*/*', 
-                            'Accept-Encoding': 'gzip, deflate, br', 
-                            "Access-Control-Allow-Headers": "*"
-                            });
-    
+    request.headers.addAll(headers);
+        
     return request;
   }
   
@@ -52,4 +55,5 @@ class BackendServices implements DisposableBuildContext{
   void dispose() {
     dispose();
   }
+  
 }
