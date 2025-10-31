@@ -14,13 +14,13 @@ class BackendServices implements DisposableBuildContext{
   Future<void> initialiseConfigurations() async 
   {
      await _remoteConfig.fetchAndActivate();
-      _cloudRunHost = _remoteConfig.getString('cloudRunHost');
+      _cloudRunHost = _remoteConfig.getString('cloudRunHost_summarising');
   }
 
   Future<Response> askGemini(String userId, String text, List<MultipartFile> attachments) async
   {
       MultipartRequest request = buildPostRequest(userId, text, attachments);
-
+    
       var streamedResponse = await _client.send(request);
       var response = await http.Response.fromStream(streamedResponse);
       return response;

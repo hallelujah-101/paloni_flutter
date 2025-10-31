@@ -1,3 +1,4 @@
+import 'package:link_text/link_text.dart';
 import 'package:uuid/uuid.dart';
 import 'backend_services.dart';
 import 'firebase_options.dart';
@@ -10,7 +11,7 @@ import 'package:flutter_chat_core/flutter_chat_core.dart';
 import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flyer_chat_image_message/flyer_chat_image_message.dart';
-import 'package:flyer_chat_text_message/flyer_chat_text_message.dart';
+import 'package:flutter_chat_bubble/chat_bubble.dart';
 import 'package:http/http.dart';
 
 void main() async {
@@ -87,42 +88,15 @@ class ChatPageState extends State<ChatPage> {
             required bool isSentByMe,
             MessageGroupStatus? groupStatus,
           }) =>
-            FlyerChatTextMessage(
-              message: message, 
-              index: index, 
-              receivedBackgroundColor: Color.fromARGB(127, 255, 69, 127), 
-              sentBackgroundColor: const Color.fromARGB(127, 201, 197, 209),
+            ChatBubble(
+              clipper: isSentByMe ? ChatBubbleClipper5(type: BubbleType.sendBubble) : ChatBubbleClipper5(type: BubbleType.receiverBubble),
+              backGroundColor: isSentByMe? const Color.fromARGB(127, 201, 197, 209): Color.fromARGB(127, 255, 69, 127),
+              alignment: isSentByMe ? Alignment.centerRight: Alignment.centerLeft,
+              child: LinkText(message.text, textStyle: TextStyle(color: Colors.white),linkStyle: TextStyle(color: Colors.white),), 
             ),
         ),
-        onAttachmentTap: () async {
-
-            getImage().then(
-              (image) {
-                  if(image != null) {
-                    addToCache(_imageCache, image);
-                    
-                    final imageMessage = message(image.path, ImageMessage);
-                    _chatController.insertMessage(imageMessage);
-                }
-              }
-            );
-
-        },
-        onMessageSend: (text) {
-              
-          _chatController.insertMessage(
-            message(text, TextMessage)
-          );
-
-          var attachments = getAttachments();
-          var request = _backendServices.askGemini(userId, text, attachments);
-
-          request.then((response){
-            processGeminiResponse(response.body);
-          });
-
-          _imageCache.clear();
-        },
+        onAttachmentTap: _onAttachmentHandler,
+        onMessageSend: _onMessageSendHandler,
         resolveUser: (UserID id) async {
           return User(id: id);
         },
@@ -131,14 +105,44 @@ class ChatPageState extends State<ChatPage> {
   }
 
 
-  Message message(message, type)
+  void _onAttachmentHandler() async
+  {
+    getImage().then(
+      (image) {
+          if(image != null) {
+            addToCache(_imageCache, image);
+            
+            final imageMessage = message(image.path, ImageMessage, userId);
+            _chatController.insertMessage(imageMessage);
+        }
+      }
+    );
+  }
+
+  void _onMessageSendHandler(text)
+  {
+    _chatController.insertMessage(
+      message(text, TextMessage, userId)
+    );
+
+    var attachments = getAttachments();
+    var request = _backendServices.askGemini(userId, text, attachments);
+
+    request.then((response){
+      processGeminiResponse(response.body);
+    });
+
+    _imageCache.clear();
+  }
+
+  Message message(message, type, sender)
   {
 
     if(type == ImageMessage)
     {
       return ImageMessage(
                 id: Uuid().v1(),
-                authorId: userId,
+                authorId: sender,
                 createdAt: DateTime.now().toUtc(),
                 source: message,
               );
@@ -147,7 +151,7 @@ class ChatPageState extends State<ChatPage> {
     {
       return CustomMessage(
               id: Uuid().v1(),
-              authorId: "Gemini",
+              authorId: sender,
               createdAt: DateTime.now().toUtc(),
               metadata: message,
             );
@@ -155,7 +159,7 @@ class ChatPageState extends State<ChatPage> {
     
     return  TextMessage(
             id: Uuid().v1(),
-            authorId: userId,
+            authorId: sender,
             createdAt: DateTime.now().toUtc(),
             text: message,
           );
@@ -197,26 +201,7 @@ class ChatPageState extends State<ChatPage> {
 
   void processGeminiResponse(String response)
   {
-    var responseBody = Map<String, dynamic>.fromEntries({});
-    
-    if(containsProducts(response))
-    {
-       responseBody = jsonDecode(response);
-      _chatController.insertMessage(message(responseBody['text'], TextMessage));
-
-      var products = responseBody['products'];
-
-      if(products.isNotEmpty){
-        for (var product in products){
-            var metadata = {"productName": product['name'], "imageUrl": product['imageUrl']};
-            _chatController.insertMessage(message(metadata, CustomMessage));
-        }
-      }
-    }
-    else
-    {
-      _chatController.insertMessage(message(response, TextMessage));
-    }
+    _chatController.insertMessage(message(response, TextMessage, "Gemini"));
   }
 }
 
