@@ -35,7 +35,7 @@ This project is built on Google Cloud resources. The steps below are required to
 
 ### Running the application locally 
 
-After deploying to firestore and setting the cloundRunHost parameter in Remote Configurations use these commands in terminal:
+After deploying to firestore and setting the 'cloundRunHost' parameter in Remote Configurations use these commands in terminal:
 
 ```Bash
 flutter clean
