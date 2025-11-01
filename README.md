@@ -17,22 +17,21 @@ samples, guidance on mobile development, and a full API reference.
 
 ### Setting up a Google Cloud account and a Firestore database
 
-This project is built on Google Cloud resources and uses a Firestore database as a memory store. The steps below are required to setup these resources.
+This project is built on Google Cloud resources. The steps below are required to setup these resources.
 
 - Log into your google cloud account and create a project 
   - [Setting up a Google Cloud account and Project](https://developers.google.com/workspace/guides/create-project)
   
-- Setting up a Firestore database for chat history
-  - [Setup a firestore database through the console](https://cloud.google.com/firestore/native/docs/manage-databases)
-  - Open up the database in the console and create a collection
-    
+- Setting up a Firestore remote configurations 
+  - [Remote Configurations Setup](https://firebase.google.com/docs/remote-config)
+        
 - Refer to the ReadMe of the backend application for how to set it up
   - [Setup backend](https://github.com/hallelujah-101/palona-webapp)
 
-- Host application on Firebase
+- Deploy application to Firebase
   - [Firebase hosting how to](https://firebase.google.com/docs/app-hosting/get-started)
-  - Setup Remote Config for the application with:
-    * {"cloudRunHost": "Link to backend app", "databaseId": "Name of firestore database", "collectionName": "Name of collection in database"}
+  - Use the remote config tab in firebase to set the parameters(variables):
+      * {"cloudRunHost": "Link to backend app"}
 
 ### Running the application
 
