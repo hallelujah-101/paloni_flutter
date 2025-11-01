@@ -32,15 +32,3 @@ This project is built on Google Cloud resources. The steps below are required to
   - [Firebase hosting how to](https://firebase.google.com/docs/app-hosting/get-started)
   - Use the remote config tab in firebase to set the parameters(variables):
       * {"cloudRunHost": "Link to backend app"}
-
-### Running the application
-
-```Bash
-flutter clean
-```
-```Bash
-flutter build web
-```
-```Bash
-flutter run
-```
