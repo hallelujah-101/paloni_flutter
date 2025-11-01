@@ -23,7 +23,7 @@ This project is built on Google Cloud resources and uses a Firestore database as
   - [Setting up a Google Cloud account and Project](https://developers.google.com/workspace/guides/create-project)
   
 - Setting up a Firestore remote configurations 
-  - [Setup](https://firebase.google.com/docs/remote-config)
+  - [Remote Configurations Setup](https://firebase.google.com/docs/remote-config)
         
 - Refer to the ReadMe of the backend application for how to set it up
   - [Setup backend](https://github.com/hallelujah-101/palona-webapp)
