@@ -21,15 +21,15 @@ This project is built on Google Cloud resources. The steps below are required to
 
 - Log into your google cloud account and create a project 
   - [Setting up a Google Cloud account and Project](https://developers.google.com/workspace/guides/create-project)
-  
-- Setting up a Firestore remote configurations 
-  - [Remote Configurations Setup](https://firebase.google.com/docs/remote-config)
         
 - Refer to the ReadMe of the backend application for how to set it up
   - [Setup backend](https://github.com/hallelujah-101/palona-webapp)
 
 - Deploy application to Firebase
   - [Firebase hosting how to](https://firebase.google.com/docs/app-hosting/get-started)
+ 
+- Setting up a Firestore remote configurations 
+  - [Remote Configurations Setup](https://firebase.google.com/docs/remote-config)
   - Use the remote config tab in firebase to set the parameters(variables):
       * {"cloudRunHost": "Link to backend app"}
 
