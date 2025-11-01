@@ -17,7 +17,7 @@ samples, guidance on mobile development, and a full API reference.
 
 ### Setting up a Google Cloud account and a Firestore database
 
-This project is built on Google Cloud resources and uses a Firestore database as a memory store. The steps below are required to setup these resources.
+This project is built on Google Cloud resources. The steps below are required to setup these resources.
 
 - Log into your google cloud account and create a project 
   - [Setting up a Google Cloud account and Project](https://developers.google.com/workspace/guides/create-project)
