@@ -4,7 +4,6 @@ import 'package:http/http.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 
 
-
 class BackendServices implements DisposableBuildContext{
 
   String _cloudRunHost = Characters.empty.toString();
@@ -32,11 +31,11 @@ class BackendServices implements DisposableBuildContext{
 
   String getImagePath(Map<String, dynamic> product)
   {
-    var file = product['file'];
+    var file = product['Image'];
     var category = product['category'];
     var gender = product['gender'];
 
-    return "$storagePath/$category]/$gender/$file";
+    return "$storagePath/$category/$gender/$file";
   }
 
 

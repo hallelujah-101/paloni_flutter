@@ -34,7 +34,6 @@ class ChatPageState extends State<ChatPage> {
   final _chatController = InMemoryChatController();
   final _imageCache = List<String>.empty(growable: true);
   final _backendServices = BackendServices();
-
   final String _userId = Uuid().v4();
 
   @override
@@ -213,13 +212,13 @@ class ChatPageState extends State<ChatPage> {
 
       if(products.isNotEmpty){
         for (var product in products){
-            var metadata = {"name": product['name'], "description": product['description'],  "imageUrl": _backendServices.getImagePath(product)};
+            var imagePath = _backendServices.getImagePath(product);
+            var metadata = {"name": product['name'], "description": product['description'],  "imageUrl": imagePath};
             _chatController.insertMessage(message(metadata, CustomMessage));
         }
       }
     }
   }
-
 }
 
 
