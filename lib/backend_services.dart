@@ -4,10 +4,12 @@ import 'package:http/http.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 
 
+
 class BackendServices implements DisposableBuildContext{
 
   String _cloudRunHost = Characters.empty.toString();
-  
+  String storagePath = Characters.empty.toString();
+
   final _remoteConfig = FirebaseRemoteConfig.instance;
   final Client _client = http.Client();
 
@@ -15,8 +17,10 @@ class BackendServices implements DisposableBuildContext{
   {
      await _remoteConfig.fetchAndActivate();
       _cloudRunHost = _remoteConfig.getString('cloudRunHost');
+      storagePath = _remoteConfig.getString('storagePath');
   }
 
+  
   Future<Response> askGemini(String userId, String text, List<MultipartFile> attachments) async
   {
       MultipartRequest request = buildPostRequest(userId, text, attachments);
@@ -24,6 +28,15 @@ class BackendServices implements DisposableBuildContext{
       var streamedResponse = await _client.send(request);
       var response = await http.Response.fromStream(streamedResponse);
       return response;
+  }
+
+  String getImagePath(Map<String, dynamic> product)
+  {
+    var file = product['file'];
+    var category = product['category'];
+    var gender = product['gender'];
+
+    return "$storagePath/$category]/$gender/$file";
   }
 
 

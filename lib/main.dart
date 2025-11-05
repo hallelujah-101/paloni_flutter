@@ -35,7 +35,7 @@ class ChatPageState extends State<ChatPage> {
   final _imageCache = List<String>.empty(growable: true);
   final _backendServices = BackendServices();
 
-  final String userId = Uuid().v4();
+  final String _userId = Uuid().v4();
 
   @override
   void dispose() {
@@ -45,7 +45,7 @@ class ChatPageState extends State<ChatPage> {
   }
 
   @override
-  Widget build(BuildContext context){
+  Widget build(BuildContext context) {
     
     _backendServices.initialiseConfigurations();
 
@@ -60,7 +60,7 @@ class ChatPageState extends State<ChatPage> {
       body:  Chat(
         backgroundColor: Theme.of(context).primaryColor,
         chatController: _chatController,
-        currentUserId: userId,
+        currentUserId: _userId,
         builders: Builders(
           customMessageBuilder: (context, message,index, 
           {
@@ -75,7 +75,8 @@ class ChatPageState extends State<ChatPage> {
                             fit: BoxFit.contain, 
                             errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) 
                             { return Image.asset('assets/clothes_query_agent_error.png');}), 
-              Text(message.metadata?['productName'])
+              Text(message.metadata?['productName']),
+              Text(message.metadata?['description'])
                         ]
           ),
           imageMessageBuilder: (context, message, index, {
@@ -106,7 +107,7 @@ class ChatPageState extends State<ChatPage> {
                 }
               }
             );
-
+            
         },
         onMessageSend: (text) {
               
@@ -115,7 +116,7 @@ class ChatPageState extends State<ChatPage> {
           );
 
           var attachments = getAttachments();
-          var request = _backendServices.askGemini(userId, text, attachments);
+          var request = _backendServices.askGemini(_userId, text, attachments);
 
           request.then((response){
             processGeminiResponse(response.body);
@@ -138,7 +139,7 @@ class ChatPageState extends State<ChatPage> {
     {
       return ImageMessage(
                 id: Uuid().v1(),
-                authorId: userId,
+                authorId: _userId,
                 createdAt: DateTime.now().toUtc(),
                 source: message,
               );
@@ -155,7 +156,7 @@ class ChatPageState extends State<ChatPage> {
     
     return  TextMessage(
             id: Uuid().v1(),
-            authorId: userId,
+            authorId: _userId,
             createdAt: DateTime.now().toUtc(),
             text: message,
           );
@@ -168,7 +169,6 @@ class ChatPageState extends State<ChatPage> {
         String base64String = base64.encode(bytes);
         _imageCache.add(base64String); }
     );
-    
   }
 
   Future<XFile?> getImage() async
@@ -179,7 +179,8 @@ class ChatPageState extends State<ChatPage> {
     return image;
   }
 
-  List<MultipartFile> getAttachments(){
+  List<MultipartFile> getAttachments()
+  {
     var attachments = List<MultipartFile>.empty(growable: true);
     
     for (String imageByte in _imageCache)
@@ -190,34 +191,35 @@ class ChatPageState extends State<ChatPage> {
     return attachments;
   }
 
-  bool containsProducts(String response)
+  RegExpMatch? getReponseObject(String response)
   {
-    return response.contains("products");
+    var responseObject = RegExp(r'{.*}');
+    return responseObject.firstMatch(response);
   }
 
   void processGeminiResponse(String response)
   {
-    var responseBody = Map<String, dynamic>.fromEntries({});
-    
-    if(containsProducts(response))
+    var responseObject = getReponseObject(response);
+
+    if(responseObject != null)
     {
-       responseBody = jsonDecode(response);
-      _chatController.insertMessage(message(responseBody['text'], TextMessage));
+      var responseBody = Map<String, dynamic>.fromEntries({});
+      var responseString = responseObject[0];
+      responseBody = jsonDecode(responseString!);
+
+       _chatController.insertMessage(message(responseBody['text'], TextMessage));
 
       var products = responseBody['products'];
 
       if(products.isNotEmpty){
         for (var product in products){
-            var metadata = {"productName": product['name'], "imageUrl": product['imageUrl']};
+            var metadata = {"name": product['name'], "description": product['description'],  "imageUrl": _backendServices.getImagePath(product)};
             _chatController.insertMessage(message(metadata, CustomMessage));
         }
       }
     }
-    else
-    {
-      _chatController.insertMessage(message(response, TextMessage));
-    }
   }
+
 }
 
 
