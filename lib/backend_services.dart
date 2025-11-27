@@ -31,11 +31,11 @@ class BackendServices implements DisposableBuildContext{
 
   String getImagePath(Map<String, dynamic> product)
   {
-    var file = product['Image'];
-    var category = product['category'];
-    var gender = product['gender'];
+    var file = product['ProductID'];
+    var category = product['Category'];
+    var gender = product['Gender'];
 
-    return "$storagePath/$category/$gender/$file";
+    return "$storagePath/$category/$gender/$file.jpg";
   }
 
 

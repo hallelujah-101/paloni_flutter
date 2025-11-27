@@ -162,7 +162,6 @@ class ChatPageState extends State<ChatPage> {
   }
 
   void addToCache(List<String> cache, XFile image){
-
      image.readAsBytes().then(
       (bytes) { 
         String base64String = base64.encode(bytes);
@@ -190,33 +189,20 @@ class ChatPageState extends State<ChatPage> {
     return attachments;
   }
 
-  RegExpMatch? getReponseObject(String response)
-  {
-    var responseObject = RegExp(r'{.*}');
-    return responseObject.firstMatch(response);
-  }
 
   void processGeminiResponse(String response)
   {
-    var responseObject = getReponseObject(response);
+    Map<String, dynamic> responseBody = jsonDecode(response);
 
-    if(responseObject != null)
-    {
-      var responseBody = Map<String, dynamic>.fromEntries({});
-      var responseString = responseObject[0];
-      responseBody = jsonDecode(responseString!);
+    _chatController.insertMessage(message(responseBody['response'], TextMessage));
 
-       _chatController.insertMessage(message(responseBody['text'], TextMessage));
-
-      var products = responseBody['products'];
-
-      if(products.isNotEmpty){
+    var products = responseBody['products'];
+    if(products.isNotEmpty){
         for (var product in products){
             var imagePath = _backendServices.getImagePath(product);
             var metadata = {"name": product['name'], "description": product['description'],  "imageUrl": imagePath};
             _chatController.insertMessage(message(metadata, CustomMessage));
         }
-      }
     }
   }
 }
