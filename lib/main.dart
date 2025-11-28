@@ -61,7 +61,7 @@ class ChatPageState extends State<ChatPage> {
         chatController: _chatController,
         currentUserId: _userId,
         builders: Builders(
-          customMessageBuilder: (context, message,index, 
+          customMessageBuilder: (context, message, index, 
           {
             required bool isSentByMe,
             MessageGroupStatus? groupStatus
@@ -70,13 +70,11 @@ class ChatPageState extends State<ChatPage> {
             spacing: 2, 
             crossAxisAlignment: CrossAxisAlignment.center, 
             children: [
-              Image.network(message.metadata?['imageUrl'], 
-                            fit: BoxFit.contain, 
+              Image.network(message.metadata?['imagePath'], 
                             errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) 
                             { return Image.asset('assets/clothes_query_agent_error.png');}), 
-              Text(message.metadata?['productName']),
-              Text(message.metadata?['description'])
-                        ]
+              Text(message.metadata?['productTitle'])                        
+              ]
           ),
           imageMessageBuilder: (context, message, index, {
             required bool isSentByMe,
@@ -162,7 +160,7 @@ class ChatPageState extends State<ChatPage> {
   }
 
   void addToCache(List<String> cache, XFile image){
-     image.readAsBytes().then(
+    image.readAsBytes().then(
       (bytes) { 
         String base64String = base64.encode(bytes);
         _imageCache.add(base64String); }
@@ -194,15 +192,24 @@ class ChatPageState extends State<ChatPage> {
   {
     Map<String, dynamic> responseBody = jsonDecode(response);
 
-    _chatController.insertMessage(message(responseBody['response'], TextMessage));
+    if(responseBody.keys.contains('error'))
+    {
+      _chatController.insertMessage(message("Couldn't fulfill the request this time. Try again!", TextMessage));
 
-    var products = responseBody['products'];
-    if(products.isNotEmpty){
-        for (var product in products){
-            var imagePath = _backendServices.getImagePath(product);
-            var metadata = {"name": product['name'], "description": product['description'],  "imageUrl": imagePath};
-            _chatController.insertMessage(message(metadata, CustomMessage));
-        }
+    }
+    else
+    {
+      _chatController.insertMessage(message(responseBody['response'], TextMessage));
+  
+      var products = responseBody['products'];
+      if(products.isNotEmpty){
+          for (var product in products){
+              var imagePath = _backendServices.getImagePath(product);
+              var metadata = {"productTitle": product['ProductTitle'], "imagePath": imagePath};
+              _chatController.insertMessage(message(metadata, CustomMessage));
+          }
+      }
+
     }
   }
 }

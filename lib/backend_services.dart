@@ -14,9 +14,9 @@ class BackendServices implements DisposableBuildContext{
 
   Future<void> initialiseConfigurations() async 
   {
-     await _remoteConfig.fetchAndActivate();
-      _cloudRunHost = _remoteConfig.getString('cloudRunHost');
-      storagePath = _remoteConfig.getString('storagePath');
+    await _remoteConfig.fetchAndActivate();
+    _cloudRunHost = _remoteConfig.getString('cloudRunHost');
+    storagePath = _remoteConfig.getString('storagePath');
   }
 
   
@@ -31,11 +31,12 @@ class BackendServices implements DisposableBuildContext{
 
   String getImagePath(Map<String, dynamic> product)
   {
-    var file = product['ProductID'];
+    var file = product['ProductId'];
     var category = product['Category'];
     var gender = product['Gender'];
 
-    return "$storagePath/$category/$gender/$file.jpg";
+    // "$storagePath$category/$gender/$file.jpg"
+    return "https://storage.googleapis.com/palona-datastore-102/data/Apparel/Girls/41963.jpg";
   }
 
 
@@ -48,7 +49,7 @@ class BackendServices implements DisposableBuildContext{
                     'Accept': '*/*', 
                     'Accept-Encoding': 'gzip, deflate, br'
                   };
-    
+
     MultipartRequest request = MultipartRequest('POST', endpoint);
     request.fields.addAll(fields);
     request.files.addAll(attachments);
