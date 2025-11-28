@@ -52,7 +52,7 @@ class ChatPageState extends State<ChatPage> {
       appBar: AppBar(
         scrolledUnderElevation: 0.0, 
         backgroundColor: Theme.of(context).primaryColor, 
-        flexibleSpace: FlexibleSpaceBar(background: Image.asset('assets/clothes_query_agent.png'), 
+        flexibleSpace: FlexibleSpaceBar(background: Image.asset('clothes_query_agent.png'), 
         centerTitle: true,), 
         toolbarHeight: 100
         ),
@@ -72,7 +72,7 @@ class ChatPageState extends State<ChatPage> {
             children: [
               Image.network(message.metadata?['imagePath'], 
                             errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) 
-                            { return Image.asset('assets/clothes_query_agent_error.png');}), 
+                            { return Image.asset('clothes_query_agent_error.png');}), 
               Text(message.metadata?['productTitle'])                        
               ]
           ),

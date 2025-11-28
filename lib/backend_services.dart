@@ -35,8 +35,7 @@ class BackendServices implements DisposableBuildContext{
     var category = product['Category'];
     var gender = product['Gender'];
 
-    // "$storagePath$category/$gender/$file.jpg"
-    return "https://storage.googleapis.com/palona-datastore-102/data/Apparel/Girls/41963.jpg";
+    return "$storagePath$category/$gender/$file.jpg";
   }
 
 
