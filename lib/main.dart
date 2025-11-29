@@ -11,6 +11,7 @@ import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flyer_chat_image_message/flyer_chat_image_message.dart';
 import 'package:flyer_chat_text_message/flyer_chat_text_message.dart';
+import 'package:flutter_chat_bubble/chat_bubble.dart';
 import 'package:http/http.dart';
 
 void main() async {
