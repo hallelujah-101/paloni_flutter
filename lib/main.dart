@@ -85,11 +85,11 @@ class ChatPageState extends State<ChatPage> {
             required bool isSentByMe,
             MessageGroupStatus? groupStatus,
           }) =>
-            FlyerChatTextMessage(
-              message: message, 
-              index: index, 
-              receivedBackgroundColor: Color.fromARGB(127, 255, 69, 127), 
-              sentBackgroundColor: const Color.fromARGB(127, 201, 197, 209),
+            ChatBubble(
+              clipper: isSentByMe ? ChatBubbleClipper5(type: BubbleType.sendBubble) : ChatBubbleClipper5(type: BubbleType.receiverBubble),
+              backGroundColor: isSentByMe? const Color.fromARGB(127, 201, 197, 209): Color.fromARGB(127, 255, 69, 127),
+              alignment: isSentByMe ? Alignment.centerRight: Alignment.centerLeft,
+              child: LinkText(message.text, textStyle: TextStyle(color: Colors.white),linkStyle: TextStyle(color: Colors.white),), 
             ),
         ),
         onAttachmentTap: () async {
