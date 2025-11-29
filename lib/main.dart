@@ -11,7 +11,6 @@ import 'package:flutter_chat_core/flutter_chat_core.dart';
 import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flyer_chat_image_message/flyer_chat_image_message.dart';
-import 'package:flyer_chat_text_message/flyer_chat_text_message.dart';
 import 'package:flutter_chat_bubble/chat_bubble.dart';
 import 'package:http/http.dart';
 
@@ -101,7 +100,7 @@ class ChatPageState extends State<ChatPage> {
                   if(image != null) {
                     addToCache(_imageCache, image);
                     
-                    final imageMessage = message(image.path, ImageMessage);
+                    final imageMessage = message(image.path, ImageMessage, _userId);
                     _chatController.insertMessage(imageMessage);
                 }
               }
@@ -111,7 +110,7 @@ class ChatPageState extends State<ChatPage> {
         onMessageSend: (text) {
               
           _chatController.insertMessage(
-            message(text, TextMessage)
+            message(text, TextMessage, _userId)
           );
 
           var attachments = getAttachments();
@@ -131,14 +130,14 @@ class ChatPageState extends State<ChatPage> {
   }
 
 
-  Message message(message, type)
+  Message message(message, type, sender)
   {
 
     if(type == ImageMessage)
     {
       return ImageMessage(
                 id: Uuid().v1(),
-                authorId: _userId,
+                authorId: sender,
                 createdAt: DateTime.now().toUtc(),
                 source: message,
               );
@@ -147,7 +146,7 @@ class ChatPageState extends State<ChatPage> {
     {
       return CustomMessage(
               id: Uuid().v1(),
-              authorId: "Gemini",
+              authorId: sender,
               createdAt: DateTime.now().toUtc(),
               metadata: message,
             );
@@ -155,7 +154,7 @@ class ChatPageState extends State<ChatPage> {
     
     return  TextMessage(
             id: Uuid().v1(),
-            authorId: _userId,
+            authorId: sender,
             createdAt: DateTime.now().toUtc(),
             text: message,
           );
@@ -196,19 +195,19 @@ class ChatPageState extends State<ChatPage> {
 
     if(responseBody.keys.contains('error'))
     {
-      _chatController.insertMessage(message("Couldn't fulfill the request this time. Try again!", TextMessage));
+      _chatController.insertMessage(message("Couldn't fulfill the request this time. Try again!", TextMessage, "Gemini"));
 
     }
     else
     {
-      _chatController.insertMessage(message(responseBody['response'], TextMessage));
+      _chatController.insertMessage(message(responseBody['response'], TextMessage, "Gemini"));
   
       var products = responseBody['products'];
       if(products.isNotEmpty){
           for (var product in products){
               var imagePath = _backendServices.getImagePath(product);
               var metadata = {"productTitle": product['ProductTitle'], "imagePath": imagePath};
-              _chatController.insertMessage(message(metadata, CustomMessage));
+              _chatController.insertMessage(message(metadata, CustomMessage, "Gemini"));
           }
       }
 
